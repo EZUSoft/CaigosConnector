@@ -50,12 +50,14 @@ from qgis.core import *
 try:
     from clsDatenbank import *
     from fnc4all import *
+    from fnc4CaigosConnector import *
     from clsSig2SVG import *
 except:
     from .clsDatenbank import *
     from .fnc4all import *
+    from .fnc4CaigosConnector import *
     from .clsSig2SVG import *
-    
+ 
 glTransparentsWert= 200
 
 def fncAktRecToText(rsAtt):
@@ -802,11 +804,17 @@ def EinenTextXMLAttributieren (eSettings,rsParam):
     return eSettings    
 
 class clsRenderingByQML():      
-    def Render(self, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group): 
+    def Render(self, clsdb, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group): 
         # bRolle = False bei QGIS < Pisa und Text
         symNum=0
-        clsdb = pgDataBase()
+        if myqtVersion == 4:
+            # bei QGIS 2.xx dringend notwendig, bei QGIS 3.xx führt es zum Crash!!!!!!!!
+            clsdb = pgDataBase() 
         db=clsdb.CurrentDB()
+
+        #if myqtVersion == 5:
+        #    msgbox ("Crash QGIS 2.99???")
+        #    return
         eRoot = ET.Element("qgis")
         if bRolle and (cgEbenenTyp == 3):
             eLabeling = ET.SubElement(eRoot,"labeling",{'type':'rule-based'}) 
@@ -815,8 +823,8 @@ class clsRenderingByQML():
             eRenderer = ET.SubElement(eRoot,"renderer-v2",{'symbollevels':'0', 'type':'RuleRenderer'})
         #if clsdb.NeedLine4TextLayer(db,LayerID, cgUser):
         #    printlog ("Zuordnungspfeil 4" + LayerID)
-        
-        
+
+
         # ===========================================================================================================================
         # Variante 1: Rollenbasierte Darstellung einer Ebene
         if bRolle : # and (cgEbenenTyp == 0 or cgEbenenTyp == 1 or cgEbenenTyp == 3 or cgEbenenTyp == 5 or cgEbenenTyp == 6): 
@@ -841,8 +849,10 @@ class clsRenderingByQML():
                 #printlog ('Hier:' + str(cgEbenenTyp) + "|" + AktDefID + "|" +clsdb.sqlAtt4Massstab(cgEbenenTyp, AktDefID, Group))
                 if rsAtt.size() == 0 :
                     #printlog (rsAttDefs.value(0)+"|"+rsAttDefs.value(1)+"|"+LayerID)
-                    addHinweis( LayerID + "/" + rsAttDefs.value(1)+ "/"+AktDefName+"(" + str(cgEbenenTyp) + "): Keine Attributdefinition gefunden")
-                    break
+                    # kann durchaus normal sein, wenn AD keine Darstellung haben soll
+                    # --> Warnung trotzdem vorläufig drin lassen
+                    addHinweis( LayerID + "/" + rsAttDefs.value(1)+ "/"+AktDefName+"(" + str(cgEbenenTyp) + "): Keine Attribut gefunden")
+                    #break 13.02.18: Abbruch macht hier keinen Sinn, weil dann das gesamte Attribt weg ist
                 
                 # Oberrolle Schreiben
                 qmap={}
@@ -866,7 +876,7 @@ class clsRenderingByQML():
                         #if fncfield(rsAtt,"lineattr") != "{00000000-0000-0000-0000-000000000000}":
                         #    printlog (fncfield(rsAtt,"lineattr"))
                     else:
-                        qmap["label"] = str(fncfield(rsAtt,"AttNum")) + ":" + fncfield(rsAtt,"ATTname")
+                        qmap["label"] = str(fncfield(rsAtt,"AttNum")) + fncfield(rsAtt,"ATTname")
 
                     qmap["symbol"] = str(symNum)
                     AktRule=ET.SubElement(eORule,"rule",qmap)
@@ -909,7 +919,7 @@ class clsRenderingByQML():
                     if cgEbenenTyp == 2 or cgEbenenTyp == 6: # Kreis und Fläche
                         qTyp = qLayer.geometryType()
                         # 1. Füllung
-                        # printlog ( fncfield(rsAtt,"ATTname")+"|"+str(fncfield(rsAtt,"AttNum")))
+                        #print  ( fncfield(rsAtt,"ATTname")+"|"+str(fncfield(rsAtt,"AttNum")))
                         eSym=EineFlaecheXMLFuellstil (eSymbols, symNum,qTyp,rsAtt)
                         
                          
@@ -958,20 +968,20 @@ class clsRenderingByQML():
             #errlog(Fehler)
 
         tree = ET.ElementTree(eRoot)
-        if fncDebugMode():
-            tempName="d:/tar/mytest1.qml"
+        tempName=tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}.qml"
+        if myqtVersion == 5:
+            f = open(tempName, "w",encoding='utf-8')
         else:
-            tempName=tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}.qml"
-        f = open(tempName, "w")
+            f = open(tempName, "w")
         
         sXML=dom.parseString(
                     ET.tostring(
                       tree.getroot(),
                       'utf-8')).toprettyxml(indent="    ")
-        if myqtVersion == 4:
-            f.write(sXML.encode('utf8'))
-        else:
+        if myqtVersion == 5:
             f.write(sXML)
+        else:
+            f.write(sXML.encode('utf8'))
         f.close()
         
         qLayer.loadNamedStyle(tempName)
@@ -980,6 +990,10 @@ class clsRenderingByQML():
 
     
 if __name__ == "__main__":
-    from qgis.utils import *
-    app = QApplication(sys.argv)
-    print (myqtVersion)
+    tempName="d:/tar/r.txt"
+    f = open(tempName, "w",encoding='utf-8')
+    f.write('Umlauteäöüß')
+    f.close()
+    #from qgis.utils import *
+    #app = QApplication(sys.argv)
+    #print (myqtVersion)

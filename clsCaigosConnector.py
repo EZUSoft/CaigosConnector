@@ -48,6 +48,7 @@ try:
     else:
         from resources import *
     from fnc4all import *
+    from fnc4CaigosConnector import *
     from uiExplorer import uiExplorer
     from uiAbout import uiAbout
     from uiDBAnbindung import uiDBAnbindung
@@ -61,6 +62,7 @@ except:
         from .resources import *
         
     from .fnc4all import *
+    from .fnc4CaigosConnector import *
     from .uiExplorer import uiExplorer
     from .uiAbout import uiAbout
     from .uiDBAnbindung import uiDBAnbindung
@@ -73,13 +75,11 @@ import webbrowser
 import os
 import getpass
 
-
-#if fncDebugMode():
-#    from clsDebug import clsDebug
+      
 
 class clsCaigosConnector:
     """QGIS Plugin Implementation."""
-
+    
     def __init__(self, iface):
         """Constructor.
 
@@ -102,7 +102,6 @@ class clsCaigosConnector:
             self.plugin_dir,
             'i18n',
             'clsCaigosConnector_{}.qm'.format(locale))
-        print locale_path
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
@@ -116,7 +115,7 @@ class clsCaigosConnector:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&CAIGOS Datenprovider')
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         s.setValue( "–id–", fncXOR( str(getpass.getuser()) + '|' + str(os.getenv('USERDOMAIN')) ))
 
 
@@ -186,13 +185,6 @@ class clsCaigosConnector:
             callback=self.SetzeDBAnbindung,
             parent=self.iface.mainWindow())
 
-        if fncDebugMode():
-            self.add_action(
-                icon_path,
-                text=self.tr(u'Debug'),
-                callback=self.modDebug,
-                parent=self.iface.mainWindow())
-
         self.add_action(
             icon_path,
             text=self.tr(u'Onlinedokumentation'),
@@ -217,10 +209,6 @@ class clsCaigosConnector:
         # remove the toolbar
         # del self.toolbar
 
-    def modDebug(self): 
-        # About-Fenster wird modal geöffnet
-        c=clsDebug()
-        c.debugplugin()
         
     def About(self): 
         # About-Fenster wird modal geöffnet
@@ -265,6 +253,7 @@ class clsCaigosConnector:
             if reply == QMessageBox.Yes:
                 self.SetzeDBAnbindung()
 
+
     def UTFTesten(self):
         resetFehler()
         resetHinweis()
@@ -277,7 +266,7 @@ class clsCaigosConnector:
         else:
              db=None  
 
-        cls=uiExplorer()
+        cls=uiExplorer(self.fncCGFensterTitel())
         if db :
             qry = clsdb.OpenRecordset(db, clsdb.sqlStrukAlleLayer()) 
             projekt=clsdb.GetCGProjektName()

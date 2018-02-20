@@ -9,12 +9,21 @@
 [general]
 name=CAIGOS PostgreSQL Konnektor
 qgisMinimumVersion=2.8
+qgisMaximumVersion=3.99
 description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.4
+version=0.6
 changelog=_______________
+        20.02.2018 V0.6:
+        - Umstellung auf QGIS 3.0 
+
+         _______________
+        09.10.2017 V0.5:
+        - SVG beim Shapeexport optional abspeichern
+
+         _______________
         08.07.2017 V0.4:
         - Anpassungen für CAIGOS 2016
           - EPSG-Code aus Geometrietabellen

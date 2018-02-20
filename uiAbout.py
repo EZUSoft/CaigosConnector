@@ -33,8 +33,10 @@ except:
 
 try:
     from fnc4all import *
+    from fnc4CaigosConnector import *
 except:
     from .fnc4all import *
+    from .fnc4CaigosConnector import *
 
 d = os.path.dirname(__file__)
 QDir.addSearchPath( "CaigosConnector", d )

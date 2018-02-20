@@ -2,6 +2,10 @@
 """
 /***************************************************************************
  clsDatenbank: Gemeinsame Basis für QGIS2 und QGIS3
+  27.10.2017 V0.5
+  - DBFAnpassen definiert: Löschen von DPF-Spalten
+  09.10.2017 V0.5
+  - Shapeexport optional Darstellung (im Shapeverzeichnis) speichern
   04.07.2017 V0.4
   - GISDB Tab jetzt auch an Punkten (Fehler im Select)
   - CheckVerbDaten umgebaut
@@ -35,7 +39,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+from osgeo import ogr # 02.10.17 muss bei 2.99 am Anfang kommen
 from qgis.core import *
 from qgis.utils import os, sys
 try:
@@ -57,12 +61,15 @@ except:
 
 try:
     from fnc4all import *
+    from fnc4CaigosConnector import *
 except:
     from .fnc4all import *
+    from .fnc4CaigosConnector import *
     
 import os.path
 import tempfile
 import sqlite3
+import locale
 
 """
 /***************************************************************************/
@@ -120,7 +127,7 @@ class pgDatabaseNeu():
 
 class pgCurrentDB(pgDatabaseNeu):
     def __init__( self ):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         service = s.value( "service", "" )
         host    = s.value( "host", "localhost" )
         port    = s.value( "port", "5432" )
@@ -174,7 +181,7 @@ def sqlAtt4Massstab4All( Art, AktDef=None):
 class pgDataBase():
     db=None    
     def GetConnString(self):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         service = s.value( "service", "" )
         host    = s.value( "host", "" )
         port    = s.value( "port", "5432" )
@@ -191,34 +198,40 @@ class pgDataBase():
         return uri.connectionInfo()
     
     def GetCGVersion(self):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         try:
             return int(s.value( "cgversion"))
         except:
             return None
     
     def GetEPSG(self):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         try:
             return int(s.value( "epsg"))
         except:
             return None
     
     def GetQSVGSignaturPfad(self):
-        return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + self.GetCGProjektName() + '/'
+        # SVG's im Shape-Pfad oder im temporären Projektpfad speichern
+        # Überarbeitung 15.02.18
+        s = QSettings( "EZUSoft", fncProgKennung() )
+        if s.value( "bSHPexp") == "Ja": # and s.value("txtSHPDir","nicht festgelegt") != "nicht festgelegt":
+            return s.value("txtSHPDir") + '/'
+        else:      
+            return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + self.GetCGProjektName() + '/'
         #return os.path.dirname(__file__) + "/" + 'projekt_svg' + '/' + self.GetCGProjektName() + '/'       
         
     
     def GetCGSignaturPfad(self):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         return s.value("cgsignaturpfad","nicht festgelegt")
     
     def GetCGProjektName(self):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         return s.value( "cgprojektname")  
     
     def GetDBname(self):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         return s.value( "dbname")
     
     def CurrentDB(self):
@@ -652,10 +665,87 @@ class pgDataBase():
         Wert=rs.value(0) != 0
         del(rs)
         return Wert
-                   
+    
+    def DBFAnpassen (self,shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None):
+        paramanz=0
+        if likeShpDat: paramanz+=1
+        if negativliste: paramanz+=1
+        if positivliste: paramanz+=1
+        if paramanz > 1: return -1
+        delAnz=0
+        
+        source = ogr.Open(shpdat, update=True)
+        if source is None:
+            addFehler(tr('ogr: can not open: ') + shpdat)
+            return
+        layer = source.GetLayer()
+        laydef = layer.GetLayerDefn()
+        
+        # alle Spaltennamen ermitteln
+        bOrgSHP = False
+        schema = []
+        for n in range(laydef.GetFieldCount()):
+            if laydef.GetFieldDefn(n).name == "shape": bOrgSHP = True # shape ist immer letzte Spalte der CAIGOS-Geodaten
+            schema.append(laydef.GetFieldDefn(n).name)
+        
+
+        if bNoGISDBIntern:
+            go = False
+            for sp in schema:
+                if sp == "shape":
+                    go=True  # shape ist immer letzte Spalte der CAIGOS-Geodaten
+
+                if go :
+                    if sp in ["id", "objidgista", "pmfmark","pmfkey", "datestampn", "timestampn","datestampe", "timestampe"]:
+                        layer.DeleteField(laydef.GetFieldIndex(sp))
+                        delAnz+=1 
+                    
+        if bOnlyDarField and bOrgSHP:
+            for sp in schema:
+                if sp == "shape":
+                    layer.DeleteField(laydef.GetFieldIndex("shape"))
+                    break  # shape ist immer letzte Spalte der CAIGOS-Geodaten
+
+                if not sp in ["defid", "alpha", "pstext"]:
+                    layer.DeleteField(laydef.GetFieldIndex(sp))
+                    delAnz+=1 
+
+                    
+        if likeShpDat:
+            print("hier")
+            likesource = ogr.Open(likeShpDat, update=True)
+            likelayer = likesource.GetLayer()
+            likelaydef = likelayer.GetLayerDefn()
+            likeschema = []
+            for n in range(likelaydef.GetFieldCount()):
+                likeschema.append(likelaydef.GetFieldDefn(n).name) 
+            likesource.Destroy()
+            for sp in schema:
+                if not sp in likeschema:
+                    layer.DeleteField(laydef.GetFieldIndex(sp))
+                    delAnz+=1   
+
+        elif positivliste:
+            # alle anderen löschen
+            for sp in schema:
+                if not sp in positivliste:
+                    layer.DeleteField(laydef.GetFieldIndex(sp))
+                    delAnz+=1
+        elif negativliste:
+            for sp in schema:
+                if sp in negativliste:
+                    layer.DeleteField(laydef.GetFieldIndex(sp))  
+                    delAnz+=1
+        source.Destroy()   
+        return delAnz
 if __name__ == "__main__":
-    #cls = pgDataBase()
-    #print (cls.sqlLayerIsEmpty(3,'xx'))
+    cls = pgDataBase()
+
+    shpdat="B:/CAIGOS_Globe/files/zwickau/downloaddienst/DD007949-81CD-4A16-8A7A-A808C7CFF155/61-L_BPlanAbgrNutzung.shp"
+    likedat="B:/CAIGOS_Globe/files/zwickau/downloaddienst/DD007949-81CD-4A16-8A7A-A808C7CFF155/61-F_BPlanWohngebiete.shp"
+    #def DBFAnpassen   (self,shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None):
+    #print (cls.DBFAnpassen (shpdat, True,           True,           likedat,           None, None))
+    print ("fertig")
     """
     print (cls.sqlStruk4Layer('{72EA7AC0-C293-4F1B-871B-DDC30113E76B}'))
     db = pgDatabaseNeu("","pl309","5432", "tkTempProjekt","caigos","*****")

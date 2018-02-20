@@ -29,10 +29,13 @@
 import os.path
 try:
     from fnc4all import *
+    from fnc4CaigosConnector import *
 except:
     from .fnc4all import *
+    from .fnc4CaigosConnector import *
 import re
 import codecs
+
 
 def subMkPfad (VerzNam, Rekursiv=False):
     try:
@@ -104,6 +107,7 @@ def Sig2SVG (qDat, zDat, Fill=False):
         
         iDatNum = open(qDat)
         # 15.06.16 utf-8 wegen Umlauten im Text
+        #print ("Öffne: ", zDat)
         oDatNum = codecs.open(zDat,"w",'utf-8')
         z=0
         sTrenn = "@"
@@ -169,7 +173,11 @@ def Sig2SVG (qDat, zDat, Fill=False):
                 oDatNum.write("<text x='" + v[6] + "' y='" + neg(fY, h)  + "'\n")
                 oDatNum.write(("style='font-size:%spx;font-family:%s;fill:rgb(%s,%s,%s)'") % (v[2],v[1],v[3],v[4],v[5])) #" + ";fill:rgb(" + v[7] + "," + v[8] + "," + v[9] + ");stroke-width:" + korr(w,v[1]) + ";stroke:rgb(" + v[3] + "," + v[4] + "," + v[5] + ")'\n")
                 # 15.06.16 wegen (Ansi) Umlauten im Text
-                oDatNum.write(">"+v[9].decode("cp1252")+"</text>\n")
+                # 15.02.18 Anpassung für QT5
+                if myqtVersion == 5:
+                    oDatNum.write(">"+v[9]+"</text>\n")
+                else:
+                    oDatNum.write(">"+v[9].decode("cp1252")+"</text>\n")
                 
 
         oDatNum.write("</svg>")

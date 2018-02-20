@@ -42,11 +42,15 @@ except:
 
 try:
     from clsDatenbank import *
+    from clsCaigosConnector import *
     from fnc4all import *
+    from fnc4CaigosConnector import *
     from fnc4sqlite import *
 except:
     from .clsDatenbank import *
+    from .clsCaigosConnector import *
     from .fnc4all import *
+    from .fnc4CaigosConnector import *
     from .fnc4sqlite import *
 
 
@@ -60,7 +64,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         super(uiDBAnbindung, self).__init__(parent)
         self.setupUi(self)
 
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         self.cbVersion.setCurrentIndex(s.value( "cgversion", 0 ))
         self.cgVersionsWechsel()
         
@@ -146,12 +150,12 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         if self.cbVersion.currentIndex() == 0:
             self.lbProjektOrDB.setText(u"Ausgewählte database.ini")
             self.leAktDatName.setText("")
-            self.leCGSignaturPfad.setText( QSettings( "EZUSoft", "CAIGOS-Konnektor" ).value( "cgsignaturpfad", "") ) # kann nicht ermittelt werden
+            self.leCGSignaturPfad.setText( QSettings( "EZUSoft", fncProgKennung() ).value( "cgsignaturpfad", "") ) # kann nicht ermittelt werden
             
         # Versuchen eine definierte Admin-Datenbank zu lesen und auszuwerten
         if self.cbVersion.currentIndex() == 1: 
             self.lbProjektOrDB.setText(u"Ausgewählte Administrationsdatenbank")  
-            admDat = QSettings( "EZUSoft", "CAIGOS-Konnektor" ).value( "admindatei", "" )
+            admDat = QSettings( "EZUSoft", fncProgKennung() ).value( "admindatei", "" )
             self.leAktDatName.setText( admDat) 
             self.leCGSignaturPfad.setText(os.path.dirname(admDat)+'/signaturen/')
             if self.leAktDatName.text() != "":
@@ -159,7 +163,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     errbox("SQLite-Datei:\n" + self.leAktDatName.text() + "\nnicht gefunden")
                     self.leAktDatName.setText("")
                     self.leCGSignaturPfad.setText("")
-                    QSettings( "EZUSoft", "CAIGOS-Konnektor" ).setValue( "admindatei", "" )
+                    QSettings( "EZUSoft", fncProgKennung() ).setValue( "admindatei", "" )
                     return False
             
             self.Projekte4AdmDBSetzen(self.leAktDatName.text())
@@ -261,7 +265,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             if self.cbVersion.currentIndex() == 0:
                 # Version für Caigos 11.2
                 if self.leAktDatName.text().strip() == "":
-                    vDat = QSettings( "EZUSoft", "CAIGOS-Konnektor" ).value( "dbinidatei", "" )
+                    vDat = QSettings( "EZUSoft", fncProgKennung() ).value( "dbinidatei", "" )
                 else:
                     vDat = self.leAktDatName.text().strip()
                 if vDat == "":
@@ -295,7 +299,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     if self.Projekte4AdmDBSetzen (admDat):
                         self.leAktDatName.setText(admDat)
                         self.leCGSignaturPfad.setText(os.path.dirname(admDat)+'/signaturen/') 
-                        #QSettings( "EZUSoft", "CAIGOS-Konnektor" ).setValue( "admindatei", self.leAktDatName.text().strip() )
+                        #QSettings( "EZUSoft", fncProgKennung() ).setValue( "admindatei", self.leAktDatName.text().strip() )
         except Exception as e:
             subLZF ()
     
@@ -325,7 +329,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         return uri.connectionInfo()
         
     def EingabeSpeichern(self, error=True):
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         s.setValue( "cgversion", self.cbVersion.currentIndex() )
         if self.cbVersion.currentIndex() == 0:
             s.setValue( "dbinidatei", self.leAktDatName.text().strip() )

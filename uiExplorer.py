@@ -2,6 +2,9 @@
 """
 /***************************************************************************
  uiExplorer: Gemeinsame Basis für QGIS2 und QGIS3
+ 09.10.2017 V0.5
+  - Shapeexport optional Darstellung (im Shapeverzeichnis) speichern
+  
  09.09.2016 V0.3
   - Leere Ebenen optional einlesen
   - SHP Export integriert
@@ -29,19 +32,23 @@
 """
 from qgis.utils import os, sys
 try:
+    from PyQt5.QtCore import QSettings
     from PyQt5 import QtGui, uic
     from PyQt5.QtCore import  QDir, Qt
     from PyQt5.QtWidgets import * 
 except:
+    from PyQt4.QtCore import QSettings
     from PyQt4 import QtGui, uic
     from PyQt4.QtCore import  QDir, Qt
     from PyQt4.QtGui  import * 
 
-    
 try:
     from fnc4all import *
+    from fnc4CaigosConnector import *
 except:
-    from .fnc4all import *
+    from .fnc4all import *   
+    from .fnc4CaigosConnector import *
+
 
 
 
@@ -144,7 +151,7 @@ class uiExplorer(QDialog, FORM_CLASS):
      "utf_7",
      "utf_8",
      "utf_8_sig"]
-    def __init__(self, parent=None):
+    def __init__(self,  parent=None):
         """Constructor."""
         super(uiExplorer, self).__init__(parent)
         # Set up the user interface from Designer.
@@ -152,21 +159,26 @@ class uiExplorer(QDialog, FORM_CLASS):
         # self.<objectname>, and you can use autoconnect slots - see
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
-
         self.setupUi(self)
         btn = self.button_box.button(QDialogButtonBox.Apply)
         btn.clicked.connect(self.Anwenden)
         self.browseZielPfad.clicked.connect(self.browseZielPfad_clicked) 
-        self.chkSHPexp.clicked.connect(self.chkSHPexp_clicked)    
+        self.chkSHPexp.clicked.connect(self.Enabled4Options)  
+        self.chkGISDB.clicked.connect(self.Enabled4Options)      
         self.setWindowTitle (fncCGFensterTitel())
 
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
+        
         bGenDar = True  if s.value( "bGenDar", "Ja" )   == "Ja"   else False
         bPrjNeu = True  if s.value( "bPrjNeu", "Ja" )   == "Ja"   else False
         bLeer = False   if s.value( "bLeer", "Nein" )   == "Nein" else True
         bDBTab = False  if s.value( "bDBTab", "Nein" )  == "Nein" else True
         b3DDar = False  if s.value( "b3DDar", "Nein" )  == "Nein" else True
         bSHPexp = False if s.value( "bSHPexp", "Nein" ) == "Nein" else True
+        bSaveDar = True if s.value( "bSaveDar", "Ja" )  == "Ja"   else False
+        bOnlyDarField = True if s.value( "bOnlyDarField", "Ja" )  == "Ja"   else False
+        bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
+
         iCodePage=s.value( "iCodePage", 0)
         # 25.10.16 Zeile war deaktiviert, warum!?
         self.txtZielPfad.setText(s.value( "txtSHPDir", "" ))
@@ -183,7 +195,11 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.chkLeer.setChecked(bLeer)
         
         self.chkSHPexp.setChecked(bSHPexp)
-        self.chkSHPexp_clicked()
+        self.chkSaveDar.setChecked(bSaveDar)
+        self.chkOnlyDarField.setChecked(bOnlyDarField)
+        self.chkNoGISDBIntern.setChecked(bNoGISDBIntern)
+        
+        self.Enabled4Options()
         
         if bPrjNeu:
             self.rBNeu.setChecked(True)
@@ -200,12 +216,16 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.cbGruppe.setCurrentIndex(iGruppe)
 
     
-    def chkSHPexp_clicked(self):
-        bGenSHP=self.chkSHPexp.isChecked()   
+    def Enabled4Options(self):
+        bGenSHP = self.chkSHPexp.isChecked() 
+        bDBTab  = self.chkGISDB.isChecked()
         #self.txtZielPfad.setEnabled(bGenSHP)      
         self.browseZielPfad.setEnabled(bGenSHP) 
         self.cbCharSet.setEnabled(bGenSHP) 
         self.lbCharSet.setEnabled(bGenSHP) 
+        self.chkSaveDar.setEnabled(bGenSHP) 
+        self.chkOnlyDarField.setEnabled(bGenSHP) 
+        self.chkNoGISDBIntern.setEnabled(bDBTab and bGenSHP) 
         if bGenSHP:
             self.txtZielPfad.setPlaceholderText(self.tr("Specify destination path")) 
         else:
@@ -214,7 +234,7 @@ class uiExplorer(QDialog, FORM_CLASS):
     
     def browseZielPfad_clicked(self):
         if self.txtZielPfad.text() == "":
-            s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+            s = QSettings( "EZUSoft", fncProgKennung() )
             lastSHPDir = s.value("txtSHPDir", ".")
         else:
             lastSHPDir = self.txtZielPfad.text()
@@ -238,7 +258,7 @@ class uiExplorer(QDialog, FORM_CLASS):
 
     
     def OptSpeichern(self):        
-        s = QSettings( "EZUSoft", "CAIGOS-Konnektor" )
+        s = QSettings( "EZUSoft", fncProgKennung() )
         s.setValue( "bGenDar", "Ja" if self.chkDar.isChecked() == True else "Nein")
         s.setValue( "bPrjNeu", "Ja" if self.rBNeu.isChecked() == True else "Nein")
         s.setValue( "iDarGruppe", self.cbGruppe.currentIndex())
@@ -246,6 +266,10 @@ class uiExplorer(QDialog, FORM_CLASS):
         s.setValue( "bLeer", "Ja" if self.chkLeer.isChecked() == True else "Nein")
         s.setValue( "b3DDar", "Ja" if self.chk3DDar.isChecked() == True else "Nein")
         s.setValue( "bSHPexp", "Ja" if self.chkSHPexp.isChecked() == True else "Nein")
+        s.setValue( "bSaveDar", "Ja" if self.chkSaveDar.isChecked() == True else "Nein")
+        s.setValue( "bOnlyDarField", "Ja" if self.chkOnlyDarField.isChecked() == True else "Nein")
+        s.setValue( "bNoGISDBIntern", "Ja" if self.chkNoGISDBIntern.isChecked() == True else "Nein")
+       
         s.setValue( "iCodePage", self.cbCharSet.currentIndex())
         s.setValue( "txtCodePage", self.cbCharSet.currentText())
         s.setValue( "txtSHPDir", self.txtZielPfad.text())
@@ -356,7 +380,9 @@ class uiExplorer(QDialog, FORM_CLASS):
 
         
 if __name__ == "__main__":
-    from clsDatenbank import *
+    app = QApplication(sys.argv)
+    cls=uiExplorer()
+    """
     app = QApplication(sys.argv)
     clsdb = pgDataBase()
     con=clsdb.GetConnString()
@@ -368,11 +394,9 @@ if __name__ == "__main__":
 
         guiListe = cls.LayerErmitteln(rootname, qry)
         print (guiListe)
-        """
-        if guiListe:
-            str1 = "','".join(guiListe)
-            str1 = "'" + str1 + "'"
-            QMessageBox.information( None,u'Folgende Ebenen wurden gewählt',str1)
-        """
-
+        #if guiListe:
+        #    str1 = "','".join(guiListe)
+        #    str1 = "'" + str1 + "'"
+        #    QMessageBox.information( None,u'Folgende Ebenen wurden gewählt',str1)
+    """
     

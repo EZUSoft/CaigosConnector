@@ -23,9 +23,11 @@
 import sqlite3 as sl
 try:
     from fnc4all import *
+    from fnc4CaigosConnector import *
 except:
     from .fnc4all import *
-
+    from .fnc4CaigosConnector import *
+    
 def slOpenRecordset(dbName,sSQL):
     try:
         con = sl.connect(dbName)
