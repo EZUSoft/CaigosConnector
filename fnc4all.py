@@ -182,8 +182,8 @@ def subLZF(Sonstiges = None):
         QgsMessageLog.logMessage( traceback.format_exc().replace("\n",chr(9))+ (chr(9) + Sonstiges if Sonstiges else ""), u'EZUSoft:Error' )
     except:
         pass
-#    if fncDebugMode():
-#        QMessageBox.critical( None,tr("PlugIn Error") ,str(exc_type) + ": \nDatei: " + fname + "\nZeile: "+ str(tb_lineno) + ("\n" + Sonstiges if Sonstiges else ""))
+    if fncDebugMode():
+        QMessageBox.critical( None,tr("PlugIn Error") ,str(exc_type) + ": \nDatei: " + fname + "\nZeile: "+ str(tb_lineno) + ("\n" + Sonstiges if Sonstiges else ""))
     addFehler ("LZF:" + traceback.format_exc().replace("\n",chr(9)) + (chr(9) + Sonstiges if Sonstiges else ""))    
 
 def cut4view (fulltext,zeichen=1500,zeilen=15,anhang='\n\n                  ............. and many more .........\n'):

@@ -2,6 +2,8 @@
 """
 /***************************************************************************
  clsQGISAction: Gemeinsame Basis für QGIS2 und QGIS3
+  17.07.2018 V0.6
+  - Anpassungen an QGIS 3.2
   09.11.2017 V0.5
   - Shapeexport optional speichern Layerdefinitions- und Projektdatei
   26.10.2017 V0.5
@@ -9,7 +11,7 @@
   08.07.2017 V0.4
   - Shape mit Darstellung speichern
   25.10.2016 V0.3
-  - toUTF8(qry4pri.value(0)): lName auf alle Zugriffe erweitert
+  - toUTF8(qry4priEbene): lName auf alle Zugriffe erweitert
   31.08.2016 V0.3
   - Integration Shape-Export
   - Hinweis für Kreise für QGis.QGIS_VERSION_INT < 21200
@@ -67,7 +69,18 @@ except:
 
 
 
-class clsQGISAction():            
+class clsQGISAction():  
+    def DelShapeDatBlock (self, shpDat):
+        try:
+            rest=shpDat # für Fehlermeldung
+            for rest in glob(shpDat[0:-4] + '.*'):
+                os.remove(rest)
+            return True
+        except OSError as e:  ## if failed, report it back to the user ##
+            addFehler(u"Datei Löschfehler %s - %s." % (e.filename,e.strerror))
+            #QMessageBox.critical(None, u"Datei Löschfehler","Error: %s - %s." % (e.filename,e.strerror)) 
+            return None
+        
     def AlleLayerLoeschen(self):
         # Löscht (im Moment) nur die Layer - nicht die Gruppen 
         LayerList = QgsMapLayerRegistry.instance().mapLayers()
@@ -130,7 +143,7 @@ class clsQGISAction():
         if myqtVersion == 4:
             ltgProjekt.setVisible(False)
         else:
-            ltgProjekt.setItemVisibilityChecked(False)    
+            ltgProjekt.setItemVisibilityChecked(True)    
 
         while (qry.next()):
             i=i+1
@@ -141,7 +154,7 @@ class clsQGISAction():
                 if myqtVersion == 4:
                     f.setVisible(False)
                 else:
-                    f.setItemVisibilityChecked(False)
+                    f.setItemVisibilityChecked(True)
 
 
             if newparent or qry.value(1) != Thema:
@@ -151,7 +164,7 @@ class clsQGISAction():
                 if myqtVersion == 4:
                     t.setVisible(False)
                 else:
-                    t.setItemVisibilityChecked(False)
+                    t.setItemVisibilityChecked(True)
             
             if newparent or qry.value(2) != Gruppe:
                 newparent=True
@@ -159,14 +172,25 @@ class clsQGISAction():
                 if myqtVersion == 4:
                     g.setVisible(False)
                 else:
-                    g.setItemVisibilityChecked(False)
+                    g.setItemVisibilityChecked(True)
             Fachschale=qry.value(0)
             Thema=qry.value(1)
             Gruppe=qry.value(2)
             newparent=False
         return ltgProjekt
         
-    def QGISBaum(self,  clsdb, User, prjNameInTree, qry4pri, qry, bGenDar, bPrjNeu, iDarGruppe, b3DDar, bDBTab, bSHPexp, bLeer, OutOfQGIS=False):
+    def QGISBaum(self, AktDB, User, prjNameInTree, qry4pri, qry, bGenDar, bPrjNeu, iDarGruppe, b3DDar, bDBTab, bSHPexp, bLeer, OutOfQGIS=False):
+        def Fortschritt(prgBar, msgBar, Step, Titel, Text):
+            # Fortschritt(prgBar, msgBar, Step,  Text)
+            try:
+                prgBar.setValue(Step)
+                msgBar.setTitle(Titel)
+                msgBar.setText(Text)
+                QCoreApplication.processEvents()
+                return True
+            except:
+                QMessageBox.critical( None, "Abbruch","Vorgang dort durch Nutzereingriff beendet")
+                return False
         idxLayer = -1
         if bSHPexp:
             s = QSettings( "EZUSoft", fncProgKennung() )
@@ -178,40 +202,49 @@ class clsQGISAction():
             
         # allgemeine Daten für Layereinbindung ermitteln
         clsRendXML = clsRenderingByQML()
-        ConnInfo=clsdb.GetConnString()
-        db=clsdb.CurrentDB()
-        Epsg=clsdb.GetEPSG()
-        cgVersion = clsdb.GetCGVersion()
+        ConnInfo=AktDB.GetConnString()
+        Epsg=GetEPSG()
+        cgVersion = GetCGVersion()
 
-        
-        # Progressbar intitialisieren
-        GesAnz = qry4pri.size()
-        if not OutOfQGIS:
-            widget = iface.messageBar().createMessage("Daten werden geladen")
-        prgBar = QProgressBar()
-        prgBar.setAlignment(Qt.AlignLeft)
-        prgBar.setValue(0)
-        prgBar.setMaximum(GesAnz)           
-        widget.layout().addWidget(prgBar)
-        iface.messageBar().pushWidget(widget, 0) # 15.02.18 Fehler bei QGIS 2018/02 iface.messageBar().INFO --> 0
-        
-
+  
         # Teil 1 =======================  Ebenen laden und attributieren  =============================
         ltgProjekt = self.ErzeugeStruktur(prjNameInTree,qry) # Projektbaum generieren           
         iface.mapCanvas().setRenderFlag( False )   # Kartenaktualisierung abschalten                 
 
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        step=0
+        # Progressbar intitialisieren
+        GesAnz = qry4pri.size()
+        if bSHPexp: 
+            GesAnz = GesAnz * 2 # zwischenschritt für Progressbar
+        GesAnz = GesAnz + 1
+        msgBar = iface.messageBar().createMessage("...")
+        prgBar = QProgressBar()
+        prgBar.setAlignment(Qt.AlignLeft)
+        prgBar.setValue(0)
+        prgBar.setMaximum(GesAnz)           
+        msgBar.layout().addWidget(prgBar)
+        iface.messageBar().pushWidget(msgBar, 0) # 15.02.18 Fehler bei QGIS 2018/02 iface.messageBar().INFO --> 0
+        
         # 3.) Ebenen laden
         #   0      1        2     
-        # Ebene,layerid, layertyp
-        i=0
+        # layername, lyrtable.layerid, lyrtable.layertyp, dbname, priority
+
+        i=0    
         while (qry4pri.next()):
-            i=i+1
-            #Progressbar weiterschalten
+            # 17.07.18: im weiteren Verlauf crasht der Zugriff auf qry4pri.value(x), deshalb werden die Werte in eine Liste geschrieben
+            qry4priEbene=qry4pri.value(0)
+            qry4priLayerID=qry4pri.value(1)
+            qry4priLayerTyp=qry4pri.value(2)
+            qry4priDBname=qry4pri.value(3)
             try:
-                prgBar.setValue(i)
-                QCoreApplication.processEvents()
+                i=i+1
+                print (i, step, GesAnz, qry4priEbene)
             except:
-                QMessageBox.critical( None, "Abbruch","Vorgang durch Nutzereingriff beendet")
+                pass
+            #Progressbar weiterschalten
+            step = step + 1
+            if not Fortschritt(prgBar, msgBar, step, "Laden", qry4priEbene):
                 break
             
             GISDBTabName=None
@@ -221,18 +254,20 @@ class clsQGISAction():
             if bLeer:
                 LayerMachWas = True
             else:
-                LayerMachWas =  not (clsdb.sqlLayerIsEmpty(q    ry4pri.value(2),qry4pri.value(1)))
+                LayerMachWas =  not (clsdb.sqlLayerIsEmpty(q    ry4pri.value(2),qry4priLayerID))
             """
-            if bDBTab and qry4pri.value(3):#
-                clsdb1 = pgDataBase() # 03.11.17: führt in QGIS2.99 zum Absturz, ist aber bei QGIS 2.18.6 notwendig
-                if clsdb1.CheckDBTabSpalte(qry4pri.value(3)):
-                    GISDBTabName=qry4pri.value(3).lower()
+            
+            if bDBTab and qry4priDBname:#
+                if dbExistsGISDBTab(qry4priDBname):
+                    GISDBTabName=qry4priDBname.lower()
                 else:
-                    addFehler("Fehler Tabellenzugriff (" + qry4pri.value(3) + ") bei: " + lName )
-            vlp = clsdb.VectorLayerPath (qry4pri.value(2),ConnInfo,Epsg, qry4pri.value(1),b3DDar, GISDBTabName, cgVersion, bSHPexp)
+                    addFehler("Fehler Tabellenzugriff (" + qry4priDBname + ") bei: " + lName )
+
+            vlp = VectorLayerPath (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp)
+            # 17.07.18: ab hier crasht der Zugriff auf qry4pri.value, deshalb werden die Werte in ein normales array geschrieben
             if vlp:
                 # ================== 1. Schritt Layer einbinden =============================
-                lName=toUTF8(qry4pri.value(0))
+                lName=toUTF8(qry4priEbene)
                 #print (vlp)
                 #print (lName)
                 Layer = QgsVectorLayer(vlp, lName , "postgres") 
@@ -241,43 +276,58 @@ class clsQGISAction():
                     if bLeer or Layer.featureCount() > 0:
                         if bSHPexp:
                             # Bei Shape-Option: Layer als Shape speichern, Postgres lösen und Shape setzen
-                            pShp=fncMakeDatName(txtZielPfad + "/" + lName +".shp")
-                            qmldat=fncMakeDatName(txtZielPfad + "/" + lName +".qml")
-                            QgsVectorFileWriter.writeAsVectorFormat(Layer,pShp,txtCodePage,Layer.crs(),"ESRI Shapefile")
-                            del(Layer) # Referenz sicherhaltshalber löschen
+                            # 30.07.18:
+                            #   - Dateien vorher löschen, sonst gibt es Nebeneffekte: z.B: Export ohne Darstellung und schom vorhandene qml
+                                        #Progressbar weiterschalten
+                            step = step + 1
                             
-                            if bOnlyDarField or bNoGISDBIntern:
-                                # def DBFAnpassen (self,shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None)
-                                clsdb.DBFAnpassen (pShp, bOnlyDarField, bNoGISDBIntern)
-                            
-                            Layer = QgsVectorLayer(pShp,lName , "ogr") 
-                            # 13.07.17: jetzt für den importieren Layer den Zeichensatz setzen
-                            Layer.setProviderEncoding(txtCodePage)
-                            Layer.dataProvider().setEncoding(txtCodePage) 
+                            if not Fortschritt(prgBar, msgBar, step, "Speichern", qry4priEbene):
+                                break
+                            if  self.DelShapeDatBlock (txtZielPfad + "/" + lName +".shp"):
+                                pShp=fncMakeDatName(txtZielPfad + "/" + lName +".shp")
+                                qmldat=fncMakeDatName(txtZielPfad + "/" + lName +".qml")
+                                QgsVectorFileWriter.writeAsVectorFormat(Layer,pShp,txtCodePage,Layer.crs(),"ESRI Shapefile")
+                                del(Layer) # Referenz sicherhaltshalber löschen
+
+                                if bOnlyDarField or bNoGISDBIntern:
+                                    # def DBFAnpassen (self,shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None)
+                                    if not Fortschritt(prgBar, msgBar, step, "DBF Anpassen", qry4priEbene):
+                                        break
+                                    DBFAnpassen (pShp, bOnlyDarField, bNoGISDBIntern)
+                                if not Fortschritt(prgBar, msgBar, step, "Anfügen", qry4priEbene):
+                                    break
+
+                                Layer = QgsVectorLayer(pShp,lName , "ogr") 
+                                # 13.07.17: jetzt für den importieren Layer den Zeichensatz setzen
+                                Layer.setProviderEncoding(txtCodePage)
+                                Layer.dataProvider().setEncoding(txtCodePage) 
+                            else:
+                                addFehler("'"+ txtZielPfad + "/" + lName + ".shp' wurde nicht erzeugt!")
 
                         if Layer.isValid():
                             if bGenDar: 
                                 # ================== 2. Schritt Darstellung definieren  ================== 
                                 #          Render(self, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group=0): 
-                                if myQGIS_VERSION_INT() < 21200 and qry4pri.value(2) == 3:
+                                if myQGIS_VERSION_INT() < 21200 and qry4priLayerTyp == 3:
                                     # Texte in Wien und Pisa:  ohne Rolle schreiben (nur erster Maßstab) Maßstab
-                                    clsRendXML.Render(clsdb,User, Layer, qry4pri.value(2), qry4pri.value(1),False,iDarGruppe)
+                                    clsRendXML.Render(AktDB, User, Layer, qry4priLayerTyp, qry4priLayerID, False, iDarGruppe)
                                 else:                    
                                     # Neue Version über QML
-                                    clsRendXML.Render(clsdb,User, Layer, qry4pri.value(2), qry4pri.value(1),True,iDarGruppe)
-                                    #return True # minidump bei 2.99
+                                    clsRendXML.Render(AktDB, User, Layer, qry4priLayerTyp, qry4priLayerID, True, iDarGruppe)
+
+
                                 if bSHPexp:
                                     if bSaveDar:
                                         Layer.saveNamedStyle (qmldat)
-     
+
 
                             # Layer zunächst in Projektroot einladen
-                            AktFachschale, AktThema, AktGruppe, AktLayer = clsdb.sqlStruk4Layer(qry4pri.value(1))
+                            AktFachschale, AktThema, AktGruppe, AktLayer = dbLayerStrukturByID(qry4priLayerID, AktDB)
                             # QGIS 2:
                             if myqtVersion == 4:
                                 QgsMapLayerRegistry.instance().addMapLayer(Layer, False)
                             else:
-                                QgsProject.instance().addMapLayer(Layer,False) # ungetestet
+                                QgsProject.instance().addMapLayer(Layer, False) 
 
                             g = ltgProjekt.findGroup(AktFachschale)
                             g = g.findGroup(AktThema)
@@ -293,13 +343,15 @@ class clsQGISAction():
                         # Bei QGIS-Wien und leerem Layer (keine Referenzllinie) kommt es zum Fehler - welcher eigentlich ja keiner ist
                         debuglog (vlp + "|" + lName  + "|" + "postgres")
             else:
-                addFehler(u"Nicht unterstützt Typ " + str(qry4pri.value(2)) + ": " + lName)
+                addFehler(u"Nicht unterstützt Typ " + str(qry4priLayerTyp) + ": " + lName)
+        
         if bSHPexp:
             if bSaveDar:
                 if myqtVersion == 5:
                     substPrjPath=txtZielPfad
                 else:
                     substPrjPath=txtZielPfad.encode('utf8')
+                
                 #substPrjPath=txtZielPfad.encode('utf8').decode('utf8'))
                 # die Layerdefinitionsdatei speichern
                 # -> Nachteil es wird keine Layerreihenfolge gespeichert
@@ -317,68 +369,24 @@ class clsQGISAction():
                 qXDatAbsolute2Relativ(tmpDat, qgsDat, substPrjPath) # txtZielPfad)
 
 
-        
-        # print str(qry.size()) -> Absturz!!!???
-        # Teil 2 =======================  Ebenen in die Struktur schieben  =============================
-        widget = iface.messageBar().createMessage("Baum wird aufgebaut")
-        prgBar = QProgressBar()
-        prgBar.setAlignment(Qt.AlignLeft)
-        prgBar.setValue(0)
-        prgBar.setMaximum(GesAnz)           
-        widget.layout().addWidget(prgBar)
-        iface.messageBar().pushWidget(widget, 0) # 15.02.18 Fehler bei QGIS 2018/02 iface.messageBar().INFO --> 0
-        i=0
-        
-        """    
-            # Layer in Gruppen schieben 
-            if not OutOfQGIS:
-                # 1. Eine eventuelle Referenzlinie
-                # Jetzt noch eine eventuelle Randlinie verschieben
-                # das Verfahren über den "errechneten" Namen ist etwas dirty, 
-                # aber die Randlinienen deshalb in die Layerliste zu übernehmen schein etwas überdimentioniert
-                gu = None
-                lName=toUTF8(qry.value(3))
-                if lName != qry.value(3):
-                    printlog(qry.value(3) + ": UTF Korrektur vorm Verschieben notwendig")
-                
-                if qry.value(5) == 3: # Text
-                    RLLayer = self.LayerbyName(lName + '(RL)')
-                    if RLLayer:
-                        if RLLayer.geometryType() == 1: # es ist eine Strecke 
-                            gu = g.addGroup(toUTF8(qry.value(3)))
-                            gu.setExpanded(False)
-                            if myqtVersion == 4:
-                                gu.setVisible(False)
-                            else:
-                                gu.setItemVisibilityChecked(False)
-                            gu.addLayer(RLLayer)
-                # self.ObjektAnzahlZeigen() -> kostet Zeit optional machen
- 
-                Layer = self.LayerbyName(lName)
-                if Layer:
-                    if gu:
-                        # Textlayer mit Refrenzlinie
-                        #gu.addLayer(Layer)
-                        gu.insertLayer(idxLayer, Layer)
-                    else:
-                        # Nomale Layer
-                        #g.addLayer(Layer)
-                        g.insertLayer(idxLayer, Layer)
-                else:
-                    printlog ("Layer wurde nicht verschoben: "  + qry.value(3)  )
-
-                        
-            Fachschale=qry.value(0)
-            Thema=qry.value(1)
-            Gruppe=qry.value(2)
-            newparent=False
-        """
         # Anzeige wieder aktivieren, Progressbar rucksetzen
         if not OutOfQGIS:
-            iface.mapCanvas().setRenderFlag( True )
             iface.messageBar().clearWidgets()
+            widget = iface.messageBar().createMessage("Baum wird aufgebaut")
+            prgBar = QProgressBar()
+            prgBar.setAlignment(Qt.AlignLeft)
+            prgBar.setValue(1)
+            prgBar.setMaximum(2)           
+            widget.layout().addWidget(prgBar)
+            iface.messageBar().pushWidget(widget, 0) # 15.02.18 Fehler bei QGIS 2018/02 iface.messageBar().INFO --> 0
+            QCoreApplication.processEvents()
+        
+
             iface.mapCanvas().refresh()
             iface.mapCanvas().zoomToSelected()
+            iface.mapCanvas().zoomScale(2000)
+            iface.mapCanvas().setRenderFlag( True )
+
             # Reihenfolge laut LayerListe ab QGIS 2.12 
             try:
                 # 2.12 - 2.99 Februar 2017
@@ -390,7 +398,10 @@ class clsQGISAction():
                 except:
                     # in Wien und (Pisa) funktioniert das nicht
                     addHinweis("\nBenutzerdefinierte Layserreihenfolge konnte nicht automatisch gesetzt werden!\nDiese muss in  dieser QGIS-Version manuell aktiviert werden.")
-
+        
+        iface.messageBar().clearWidgets()
+        QApplication.restoreOverrideCursor()
+        
         if myQGIS_VERSION_INT() < 21200:
             addHinweis("Bis QGIS 2.12 ist nur eine eingeschränkte Textdarstellung möglich!\nAußerdem können keine Kreise dargestellt werden!")
         
@@ -421,8 +432,8 @@ if __name__ == "__main__":
  
     if  db :
         print (clsdb.sqlStrukAlleLayer("'{B22183E0-3AEC-44ED-B0A8-60B2F02C6649}'"))
-        print (clsdb.OpenRecordset(db,clsdb.sqlStrukAlleLayer("'{B22183E0-3AEC-44ED-B0A8-60B2F02C6649}'")) )
-        qry = clsdb.OpenRecordset(db, clsdb.sqlStrukAlleLayer("'{B22183E0-3AEC-44ED-B0A8-60B2F02C6649}'")) 
+        print (db.OpenRecordset(sqlStrukAlleLayer("'{B22183E0-3AEC-44ED-B0A8-60B2F02C6649}'")) )
+        qry = db.OpenRecordset(sqlStrukAlleLayer("'{B22183E0-3AEC-44ED-B0A8-60B2F02C6649}'")) 
         while (qry.next()):
             s=qry.value(0)
             printlog(s)

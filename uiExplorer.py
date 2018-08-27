@@ -162,7 +162,8 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.setupUi(self)
         btn = self.button_box.button(QDialogButtonBox.Apply)
         btn.clicked.connect(self.Anwenden)
-        self.browseZielPfad.clicked.connect(self.browseZielPfad_clicked) 
+        self.browseZielPfad.clicked.connect(self.browseZielPfad_clicked)
+        self.cmdReset.clicked.connect(self.cmdReset_clicked)         
         self.chkSHPexp.clicked.connect(self.Enabled4Options)  
         self.chkGISDB.clicked.connect(self.Enabled4Options)      
         self.setWindowTitle (fncCGFensterTitel())
@@ -231,6 +232,17 @@ class uiExplorer(QDialog, FORM_CLASS):
         else:
             self.txtZielPfad.setPlaceholderText("") 
     
+    def cmdReset_clicked(self):
+        self.chkDar.setChecked(True)
+        self.chkGISDB.setChecked(False)
+        self.chkLeer.setChecked(False)
+        self.chk3DDar.setChecked(False)
+        
+        self.chkSHPexp.setChecked(False)
+        self.chkSaveDar.setChecked(False)
+        self.chkOnlyDarField.setChecked(False)
+        self.chkNoGISDBIntern.setChecked(False)
+        
     
     def browseZielPfad_clicked(self):
         if self.txtZielPfad.text() == "":
@@ -349,6 +361,9 @@ class uiExplorer(QDialog, FORM_CLASS):
             if not os.path.exists(ZielPfad):
                 QMessageBox.critical(None, u"Shape Zielpfad nicht gefunden", ZielPfad)
                 return
+        
+        
+
         super(uiExplorer, self).accept() # Fenster schließen
             
     # Die Zeilen mit ausgewaehlter Checkox ausgeben
@@ -380,23 +395,8 @@ class uiExplorer(QDialog, FORM_CLASS):
 
         
 if __name__ == "__main__":
+    uri = QgsDataSourceUri()
     app = QApplication(sys.argv)
     cls=uiExplorer()
-    """
-    app = QApplication(sys.argv)
-    clsdb = pgDataBase()
-    con=clsdb.GetConnString()
-    db=clsdb.OpenDatabase(con) 
-    rootname=clsdb.GetDBname()
-    if db :
-        qry = clsdb.OpenRecordset(db,clsdb.sqlStrukAlleLayer()) 
-        cls = uiExplorer()
-
-        guiListe = cls.LayerErmitteln(rootname, qry)
-        print (guiListe)
-        #if guiListe:
-        #    str1 = "','".join(guiListe)
-        #    str1 = "'" + str1 + "'"
-        #    QMessageBox.information( None,u'Folgende Ebenen wurden gewählt',str1)
-    """
-    
+    result=cls.exec_()
+ 

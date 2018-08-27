@@ -2,6 +2,9 @@
 """
 /***************************************************************************
  uiDBAnbindung: Gemeinsame Basis für QGIS2 und QGIS3
+    16.08.2018: CheckVerbindungsdaten komplett überarbeitet
+    06.08.2018 
+        - Fehler Auswahl dbdesign.cgbin für QGIS 3.x beseitigt
     01.07.2017 V0.4
         - Erweiterung auf Caigos 2016
         
@@ -293,8 +296,14 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     
             if self.cbVersion.currentIndex() == 1:
                 # Version für Caigos 2016
-                admDat = QFileDialog.getOpenFileName(None, 'Administrationsdatenbank  im CAIGOS-Server Ordner', 
+                # 06.08.18 nach myqtVersion unterscheiden
+                if myqtVersion == 4:
+                    admDat = QFileDialog.getOpenFileName(None, 'Administrationsdatenbank  im CAIGOS-Server Ordner', 
                              self.leAktDatName.text().strip() , "database (*.cgbin)")
+                else:
+                    admDat = QFileDialog.getOpenFileName(None, 'Administrationsdatenbank  im CAIGOS-Server Ordner', 
+                             self.leAktDatName.text().strip() , "database (*.cgbin)")[0]
+                
                 if admDat:
                     if self.Projekte4AdmDBSetzen (admDat):
                         self.leAktDatName.setText(admDat)
@@ -311,7 +320,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             return DefWert
         else:
             return Wert
-    
+    """
     def DialogConnString(self):
         service = self.leSERVICE.text().strip()
         host = self.leHOST.text().strip()
@@ -327,7 +336,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             uri.setConnection( host, port, dbname, uid, pwd )
 
         return uri.connectionInfo()
-        
+    """    
     def EingabeSpeichern(self, error=True):
         s = QSettings( "EZUSoft", fncProgKennung() )
         s.setValue( "cgversion", self.cbVersion.currentIndex() )
@@ -348,10 +357,15 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         #QMessageBox.information( None,'Datenbankzugriff','gespeichert')
 
     def CheckEingabe(self):
-        connstr=self.DialogConnString()
-        clsdb=pgDataBase()
-        clsdb.CheckVerbDaten(self.leEPSG.text().strip(),self.leCGSignaturPfad.text().strip(),
-                             fncKorrDateiName(self.leCGProjektName.text().strip()),connstr, False) 
+        service = self.leSERVICE.text().strip()
+        host = self.leHOST.text().strip()
+        port = self.lePORT.text().strip()
+        dbname = self.leDBNAME.text().strip()
+        uid = self.leUID.text().strip()
+        pwd = self.lePWD.text().strip()
+        chkDB = pgOpenDatabase(service, host, port, dbname, uid, pwd)
+        chkDB.CheckVerbDaten(self.cbVersion.currentIndex(), self.leEPSG.text().strip(),self.leCGSignaturPfad.text().strip(),
+                             fncKorrDateiName(self.leCGProjektName.text().strip()),None, False) 
 
     def Speichern(self):    
         self.EingabeSpeichern()
@@ -366,8 +380,4 @@ if __name__ == "__main__":
     #uri=QgsDataSourceURI()
     cls=uiDBAnbindung()
     result=cls.exec_()
-    """
-    if result:
-        clsdb=pgDataBase()
-        clsdb.CheckVerbDaten(25833,"")
-    """
+ 

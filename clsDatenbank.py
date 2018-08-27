@@ -2,6 +2,9 @@
 """
 /***************************************************************************
  clsDatenbank: Gemeinsame Basis für QGIS2 und QGIS3
+  18.07.2018 V0.6
+  - Komplettüberarbeitung Datenbankzugriff
+ 
   27.10.2017 V0.5
   - DBFAnpassen definiert: Löschen von DPF-Spalten
   09.10.2017 V0.5
@@ -62,25 +65,31 @@ except:
 try:
     from fnc4all import *
     from fnc4CaigosConnector import *
+    from modCGSqlCodes import *
 except:
     from .fnc4all import *
     from .fnc4CaigosConnector import *
+    from .modCGSqlCodes import *
     
 import os.path
 import tempfile
 import sqlite3
 import locale
+import uuid
+
 
 """
 /***************************************************************************/
-                    Teil1: Datenbankzugriffe
+                    Teil1: Klasse Datenbankzugriffe
 /***************************************************************************/
 """
-class pgDatabaseNeu():
+class pgOpenDatabase():
     def __init__( self, service, host, port, dbname, uid, pwd):
         self.Fehler = None
-        self.conname=service+host+port+dbname
-        self.QSqlDB = QSqlDatabase.addDatabase("QPSQL", self.conname )
+        # 19.07.18: GUID als Name, da unter QGIS3.2 ein Löschen der DB bei offenen Recordset zum Absturz führt
+        self.ConNameByGIUD=str(uuid.uuid4())
+        self.QSqlDB = QSqlDatabase.addDatabase("QPSQL", self.ConNameByGIUD )
+        """
         if service == "":
             self.QSqlDB.setHostName(host)
             self.QSqlDB.setPort(int(port))
@@ -90,12 +99,29 @@ class pgDatabaseNeu():
         self.QSqlDB.setDatabaseName(dbname)
         self.QSqlDB.setUserName(uid)
         self.QSqlDB.setPassword(pwd)
+        """
+        
+        # 19.08.18:
+        # irgendwie ist/war das doppelt, die Uri wird für andere Programmteile benötigt
+        # und in der alten Version wurde die auch zur DB-Anbindung genutzt: db.setConnectOptions( conninfo0 )
+        self.uri = QgsDataSourceUri()
+        if service == "":
+            self.uri.setConnection( host, port, dbname, uid, pwd )
+        else:
+            self.uri.setConnection(service, dbname, uid, pwd )
+        
+        self.QSqlDB.setConnectOptions( self.uri.connectionInfo() )
+
     
+    def GetConnString(self):
+        return self.uri.connectionInfo()
+
+    # Überlegen, ob das Open gleich mit ins Ini kommt
     def Open(self):
         if self.QSqlDB.open():
             return self.QSqlDB
         else:
-            err = (u"pgDatabaseNeu:"  + '\n' +
+            err = (u"pgOpenDatabase:"  + '\n' +
             "Text: " + self.QSqlDB.lastError().text() +  '\n' +
             "Type: " + str(self.QSqlDB.lastError().type()) +  '\n' +
             "Number: " + str(self.QSqlDB.lastError().number()) )
@@ -119,13 +145,75 @@ class pgDatabaseNeu():
             "Number: " + str(rs.lastError().number()) +  "\n" +
             "SQL: " + SQLString)
             self.Fehler =  (toUnicode(err))            
+    
+    def CheckVerbDaten(self,idxVersion = None, EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
+        Meldung =""; Fehler=""; Warnung = ""
+        if not idxVersion:
+            idxVersion = GetCGVersion()  
+        if not EPSG:
+            EPSG = GetEPSG()  
+        if not CGSignaturPfad:
+            CGSignaturPfad = GetCGSignaturPfad()    
+        if not CGProjektName:
+            CGProjektName = GetCGProjektName()      
+        if not conninfo:
+            conninfo = self.GetConnString()
+        
+        # 16.08.18 DB-Check war deaktiviert!?
+        #          --> neu aktiviert
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        if self.Open():
+            Meldung= u"Datenbankverbindung erfolgreich"
+            if self.OpenRecordset("Select * from pointssqlspatial limit 1"):
+                Meldung = Meldung + "\n" if Meldung else ""
+                Meldung = Meldung + u"CAIGOS Geodatentabelle in der Datenbank gefunden"
+            else:
+                Fehler=Fehler + "\n" if Fehler else ""
+                Fehler=Fehler + u"Keine CAIGOS Geodatentabelle in der Datenbank gefunden:\n" + "\n"       
+        else:
+            Fehler= u"Datenbankverbindung schlug fehl:\n" + self.getFehler() + "\n"
+        QApplication.restoreOverrideCursor()
+        
+        if EPSG == None or EPSG == "" or EPSG == 0 or EPSG == "0":
+            Fehler=Fehler + "\n" if Fehler else ""
+            Fehler= Fehler + "EPSG-Code nicht definiert"
+        
+        if CGProjektName == "":
+            Fehler=Fehler + "\n" if Fehler else ""
+            Fehler=Fehler+"Kein Projektname festgelegt"
+    
+        if CGSignaturPfad == "":
+            Warnung=Warnung + "\n" if Warnung else ""
+            Warnung=Warnung+toUnicode("CAIGOS Signaturverzeichnis nicht festgelegt\n  ->Es können keinen SVG-Symbole generiert werden")           
+        else:
+            sigPfad = CGSignaturPfad    
+            if idxVersion  == 1: sigPfad = sigPfad  + CGProjektName + '/'
+
+            if os.path.exists(sigPfad):
+                Meldung = Meldung + "\n" if Meldung else ""
+                Meldung = Meldung + "CAIGOS Signaturverzeichnis gefunden"
+            else:
+                Warnung = Warnung + "\n" if Warnung else ""
+                Warnung = Warnung +  u"\nCAIGOS Signaturverzeichnis ('" + sigPfad + toUnicode("') nicht gefunden\n  ->Es können keine SVG-Symbole generiert werden")            
+        
+        if Fehler:
+            QMessageBox.critical( None, u"Es sind Fehler aufgetreten", Fehler)
+            return False
+        else:  
+            if not NurFehler:
+               QMessageBox.information( None,u'Folgende Tests waren erfolgreich:',Meldung)
+            if Warnung:
+               QMessageBox.information( None,u'Konfigurationsproblem',Warnung)
+            return True             
+
  
     def __del__(self):
         if self.QSqlDB:
+            self.QSqlDB.close()
             del(self.QSqlDB)
-            QSqlDatabase.removeDatabase(self.conname) 
+            QSqlDatabase.removeDatabase(self.ConNameByGIUD) 
 
-class pgCurrentDB(pgDatabaseNeu):
+class pgCurrentDB(pgOpenDatabase):
     def __init__( self ):
         s = QSettings( "EZUSoft", fncProgKennung() )
         service = s.value( "service", "" )
@@ -134,11 +222,15 @@ class pgCurrentDB(pgDatabaseNeu):
         dbname  = s.value( "dbname", "cgTestProjekt" )
         uid     = s.value( "uid", "caigos" )
         pwd     = s.value( "pwd", "*****" )
-        pgDatabaseNeu.__init__( self, service, host, port, dbname, uid, pwd)
+        pgOpenDatabase.__init__( self, service, host, port, dbname, uid, pwd)
+        pgOpenDatabase.Open(self)
+
+        
     def __del__(self):
-        pgDatabaseNeu.__del__(self)
+        pgOpenDatabase.__del__(self)
 
 def pgCurrendLookUp (sqlStringMitEinemFeld, OffeneDB = None, FldNum = 0):  
+# aktuell ungenutzt
     if OffeneDB:
         AktDB = OffeneDB
     else:
@@ -155,683 +247,362 @@ def pgCurrendLookUp (sqlStringMitEinemFeld, OffeneDB = None, FldNum = 0):
         del (AktDB)
     return Wert
         
+    
 """
 /***************************************************************************/
-                    Teil1: SQL Codes
+                    Teil2: nachschlagen in der Registy
+/***************************************************************************/
+"""
+def GetCGVersion():
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    try:
+        return int(s.value( "cgversion"))
+    except:
+        return None
+
+def sGetCGVersion():
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    try:
+        if int(s.value( "cgversion"))==0: return "V11"
+        if int(s.value( "cgversion"))==1: return "V2016"
+    except:
+        return None
+        
+def GetEPSG():
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    try:
+        return int(s.value( "epsg"))
+    except:
+        return None
+
+def GetQSVGSignaturPfad():
+    # SVG's im Shape-Pfad oder im temporären Projektpfad speichern
+    # Überarbeitung 15.02.18
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    if s.value( "bSHPexp") == "Ja": # and s.value("txtSHPDir","nicht festgelegt") != "nicht festgelegt":
+        return s.value("txtSHPDir") + '/'
+    else:      
+        return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + GetCGProjektName() + '/'
+    #return os.path.dirname(__file__) + "/" + 'projekt_svg' + '/' + GetCGProjektName() + '/'          
+
+def GetCGSignaturPfad():
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    return s.value("cgsignaturpfad","nicht festgelegt")
+
+def GetCGProjektName():
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    return s.value( "cgprojektname")  
+
+def GetDBname():
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    return s.value( "dbname")
+
+
+
+"""
+/***************************************************************************/
+                    Teil3: other stuff
+                           --> Datenbankarbeit und SQL-Codes sollten mal getrennt werden
 /***************************************************************************/
 """
 
-        
-def sqlAtt4Massstab4All( Art, AktDef=None):
-    # Art 31 (Referenzpfeil) wird hier auf Text(abfrage) zurückgesetzt
-    # Attribute nach Maßstab - Grunddaten für alle Geometriearten gleich
-    sFilt = "" if AktDef == None else " deftable.defid='" + AktDef + "' AND "
-    sSQL=""
-    for i in range(5):
-        if i>0:
-            sSQL=sSQL + "\nUNION ALL\n"
-        sSQL = sSQL + (
-"SELECT  %i AS AttNum, deftable.defid AS ADid, defname AS ADname,fa_id AS ATTid, attrname AS ATTname, scrscale%i AS MMin, scrscale%i AS mMax, scrresize "
-"FROM deftable INNER JOIN frameatttable ON deftable.scrattrname%i = frameatttable.fa_id where " + sFilt + " attrtype=%i"
-) % (i+1,i+1,i+2,i+1,3 if Art==31 else Art)
 
-    return sSQL
-
-        
-class pgDataBase():
-    db=None    
-    def GetConnString(self):
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        service = s.value( "service", "" )
-        host    = s.value( "host", "" )
-        port    = s.value( "port", "5432" )
-        dbname  = s.value( "dbname", "" )
-        uid     = s.value( "uid", "" )
-        pwd     = s.value( "pwd", "" )
-
-        uri = QgsDataSourceUri()
-        
-        if service == "":
-            uri.setConnection( host, port, dbname, uid, pwd )
-        else:
-            uri.setConnection(service, dbname, uid, pwd )
-        return uri.connectionInfo()
-    
-    def GetCGVersion(self):
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        try:
-            return int(s.value( "cgversion"))
-        except:
-            return None
-    
-    def GetEPSG(self):
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        try:
-            return int(s.value( "epsg"))
-        except:
-            return None
-    
-    def GetQSVGSignaturPfad(self):
-        # SVG's im Shape-Pfad oder im temporären Projektpfad speichern
-        # Überarbeitung 15.02.18
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        if s.value( "bSHPexp") == "Ja": # and s.value("txtSHPDir","nicht festgelegt") != "nicht festgelegt":
-            return s.value("txtSHPDir") + '/'
-        else:      
-            return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + self.GetCGProjektName() + '/'
-        #return os.path.dirname(__file__) + "/" + 'projekt_svg' + '/' + self.GetCGProjektName() + '/'       
-        
-    
-    def GetCGSignaturPfad(self):
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        return s.value("cgsignaturpfad","nicht festgelegt")
-    
-    def GetCGProjektName(self):
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        return s.value( "cgprojektname")  
-    
-    def GetDBname(self):
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        return s.value( "dbname")
-    
-    def CurrentDB(self):
-        if self.db:
-            return self.db
-        else:
-            conninfo0 = self.GetConnString()
-            self.db = self.OpenDatabase(conninfo0)
-            return self.db
-    
-    def OpenDatabase(self,conninfo0):     
-        QSqlDatabase.removeDatabase( "cgProjekt" )
-        db = QSqlDatabase.addDatabase( "QPSQL", "cgProjekt" )
-        db.setConnectOptions( conninfo0 )
-
-        if db.open():
-            return (db)
-        else:
-            err = ("OpenDatabase:"  + "\n" +
-            "Text: " + db.lastError().text() +  "\n" +
-            "Type: " + str(db.lastError().type()) +  "\n" +
-            "Number: " + str(db.lastError().number()) )
-            addFehler(err)
-   
-    def CloseDatabase(self,db):
-        db.close()
-        # QSqlDatabasePrivate::removeDatabase: connection 'cgProjekt' is still in use, all queries will cease to work.
-        # kein Weg gefunden die  Warnung anzuschalten
-        QSqlDatabase.removeDatabase( "cgProjekt" )
-
-    def CheckDBTabSpalte(self,GISDBTabName):
-        db=self.CurrentDB()
-        sDB=GISDBTabName.lower()
-        sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname = '%s_objid'")%(sDB,sDB)
-        #rs = self.OpenRecordset(db,sSQL)
-        #db.close()
-        #return True
-        return (self.OpenRecordset(db,sSQL).size()==1) 
-    
-    def CheckVerbDaten(self,EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
-        Meldung =""
-        Fehler=""
-        Warnung = ""
-        if not EPSG:
-            EPSG = self.GetEPSG()  
-        if not CGSignaturPfad:
-            CGSignaturPfad = self.GetCGSignaturPfad()    
-        if not CGProjektName:
-            CGProjektName = self.GetCGProjektName()      
-        if not conninfo:
-            conninfo = self.GetConnString()
-        
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        if self.OpenDatabase(conninfo):
-            Meldung= u"Datenbankverbindung erfolgreich"
-        else:
-            Fehler=u"Datenbankverbindung schlug fehl:\n" + "\n".join(getFehler())
-            resetFehler()           
-        QApplication.restoreOverrideCursor()
-        
-        if EPSG == None or EPSG == "" or EPSG == 0 or EPSG == "0":
-            Fehler=Fehler + "\n" if Fehler else ""
-            Fehler=Fehler+"EPSG-Code nicht definiert"
-        
-        if CGProjektName == "":
-            Fehler=Fehler + "\n" if Fehler else ""
-            Fehler=Fehler+"Kein Projektname festgelegt"
-    
-        if CGSignaturPfad == "":
-            Warnung=Warnung + "\n" if Warnung else ""
-            Warnung=Warnung+u"CAIGOS Signaturverzeichnis nicht festgelegt\n  ->Es können keinen SVG-Symbole generiert werden"            
-        else:
-            sigPfad = CGSignaturPfad             
-            if os.path.exists(sigPfad):
-                Meldung = Meldung + "\n" if Meldung else ""
-                Meldung = Meldung + "CAIGOS Signaturverzeichnis gefunden"
-            else:
-                Warnung = Warnung + "\n" if Warnung else ""
-                Warnung = Warnung + sigPfad + u"\nCAIGOS Signaturverzeichnis nicht gefunden\n  ->Es können keinen SVG-Symbole generiert werden"            
-        
-        if Fehler:
-            QMessageBox.critical( None, u"Es sind Fehler aufgetreten", Fehler )
-            return False
-        else:  
-            if not NurFehler:
-               QMessageBox.information( None,u'Folgende Tests waren erfolgreich:',Meldung)
-            if Warnung:
-               QMessageBox.information( None,u'Konfigurationsproblem',Warnung)
-            return True             
-
-    def OpenRecordset(self,db,sqlString,ShowErr = False):
-        qry = QSqlQuery(db)
-        if not qry.exec_( sqlString ):
-            err = ("OpenRecordset:"  + "\n" +
-            "Text: " + qry.lastError().text() +  "\n" +
-            "Type: " + str(qry.lastError().type()) +  "\n" +
-            "Number: " + str(qry.lastError().number()) +  "\n" +
-            "SQL: " + sqlString)
-            if ShowErr:
-                errbox(err)
-            else:
-                addFehler (err)
-        return qry
-
-    def Execute(self,db,sqlString):
-        err = ""
-        qry = QSqlQuery(db)
-        if not qry.exec_( sqlString ):
-            err = ("OpenRecordset:"  + "\n" +
-            "Text: " + qry.lastError().text() +  "\n" +
-            "Type: " + str(qry.lastError().type()) +  "\n" +
-            "Number: " + str(qry.lastError().number()) +  "\n" +
-            "SQL: " + sqlString)
-        return err 
-        
-    def GeoTabName4Art (self,Art):
-        table=None
-        if Art == 0: # Point      
-            table="pointssqlspatial"
-        if Art == 1: # Line
-            table="linessqlspatial"
-        if Art == 2: # Kreis
-            table="arcssqlspatial"
-        if Art == 3: # Text
-            table="textssqlspatial"
-        if Art == 31: # Referenzlinie
-            table="textssqlspatial"
-        if Art == 4: # Bemaßung
-            table = None
-        if Art == 5: # Polylinie
-            table="segssqlspatial"
-        if Art == 6: # Fläche
-            table="polyssqlspatial"    
-        return table
-    
-    def sqlAtt4Massstab (self, Art, AktDef, Group):
-        sSQL=sqlAtt4Massstab4All(Art,AktDef)      
-        if Art == 0: # Point      
-            sSQL="select * from (" + sSQL +") as dummy inner join pointatttable ON dummy.ATTid = pointatttable.pta_idfa where pointatttable.pta_ag=" + str(Group)  + " order by attnum"  
-        if Art == 1: # Line
-            sSQL=sSQL
-        if Art == 2: # Kreis
-            sSQL="select * from (" + sSQL +") as dummy inner join (select * from arcatttable where arcatttable.aa_ag=" + str(Group) + ") as arc ON dummy.ATTid = arc.aa_idfa  inner join polyatttable  ON arc.polyattr = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
-            sSQL = sSQL
-        if Art == 3 or Art == 31: # Text bzz Referenzlinie
-           sSQL="select * from (" + sSQL +") as dummy inner join textatttable ON dummy.ATTid = textatttable.ta_idfa where textatttable.ta_ag=" + str(Group)  + " order by attnum"  
-        if Art == 4: # Bemaßung
-            sSQL = sSQL
-        if Art == 5: # Polylinie
-            sSQL="select * from (" + sSQL +") as dummy inner join segatttable  ON dummy.ATTid = segatttable.sa_idfa where segatttable.sa_ag=" + str(Group)  + " order by attnum"  
-        if Art == 6: # Fläche
-            sSQL="select * from (" + sSQL +") as dummy inner join polyatttable  ON dummy.ATTid = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
-        return sSQL   
-
-    def sqlAttParam4IDandArt(self, Art, AktAttID, Group):
-        sSQL=None
-        if Art == 0: # Point      
-            sSQL=("select * from  pointatttable  where pointatttable.pta_idfa = '%s' and  pointatttable.pta_ag=%d") % (AktAttID, Group)
-
-        if Art == 1 or Art == 5: # Strecke, Polylinie
-                  #                      0                     1           2        3      4       5      6       7              8           9            10          11
-            sSQL=("SELECT la_idfa AS st_attid, attrname AS st_attrname, la_linenr, used, color, sizemm, basemm, basecolor, linesigattr, linesigbegin,linesigofs, linesigofsline, "
-                   #           12            13            14            15          16           17          18       19          20          21          22           23
-                  "       lineoffset, sigbeginattr, sigmiddleattr, sigendattr, transparent, denyatpercent, penid, basepenid, sigbeginpos, sigendpos, sigmiddlepos, geocolor, "
-                   #           24
-                  "       scrresize, pentable.* "
-                  "FROM (frameatttable INNER JOIN lineatttable ON frameatttable.fa_id = lineatttable.la_idfa) "
-                  "INNER JOIN pentable ON lineatttable.penid =pentable.id "
-                  "WHERE la_idfa='%s' AND used='J' AND la_ag=%i order by la_linenr DESC") %(AktAttID, Group) # 22.08.16 Reihenfolge (testweise) umgedreht, damit Symbolde der Baseline zuletzt
-
-        if Art == 2: # Kreis
-            sSQL = None
-        if Art == 3: # Text
-            # nur noch für alte Version Rendering Wien 
-                  #          0        1       2         3        4       5        6       7      8
-            sSQL=("SELECT defname, defid , attrname, lineattr, color, sizemm, fontname, bold, italic, "
-                  #             9         10          11        12         13             14         15        16       17       18        19       20
-                  "         underline, freestyle, textalign, frametext, framecolor, framewidthmm, bkcolor, lineattr, tabpos1, tabpos2, usememo, blattnord, "
-                  #             21          22             23               24            25       26
-                  "         oneline, charframetext, charframecolor, charframewidthmm, quality, ofsalign "
-                  "  FROM (textatttable INNER JOIN deftable ON textatttable.ta_idfa = deftable.scrattrname1) "
-                  "        INNER JOIN frameatttable ON textatttable.ta_idfa = frameatttable.fa_id "
-                  "  WHERE defid='%s' AND textatttable.ta_ag=%i;") % (AktAttID,Group)
-            #sSQL=None # unused
-        if Art == 4: # Bemaßung
-            sSQL = None
-
-        if Art == 6: # Fläche
-            sSQL=None       
-        return sSQL
-
-    def sqlGisDBShortFieldName (self,TabName):
-        clsdb=pgDataBase()
-        db = clsdb.CurrentDB()
-        rs = clsdb.OpenRecordset(db,"select column_name from information_schema.columns where table_name='" + TabName + "'")
-        clsdb.CloseDatabase
-        s = "select "
-        while (rs.next()) :
-            if rs.value(0).replace(TabName + '_','') == 'objid':
-                s = s + rs.value(0) + " as objidgistab," # objid wäre sonnst doppelter Name in Abfrage, da Spalte objid auch in GeoTab
-            else:
-                s = s + rs.value(0) + " as " + rs.value(0).replace(TabName + '_','') + ","
-        # letztes , weg
-        s = s[:-1]
-        s=  s + " FROM " + TabName  
-        
-        return s
-
-    
-    def VectorLayerPath (self, Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape):
-        bDeltaTexte = True # evtl. später mal optional 
-        uri = None
-        geoTabName=self.GeoTabName4Art(Art)
-        if LayerID:
-            where="layerid='%s'" % (LayerID)
-        else:
-            where =""
-        
-        if b3DDar:
-            ken3D="Z"
-        else:    
-            ken3D=""
-            
-        if GISDbTab:
-            if bShape:
-                # Tabellennamen aus Spalte kürzen, da Shape nur 10 Zeichen
-                sql4GISDB = self.sqlGisDBShortFieldName(GISDbTab).replace("\\","")
-                sqlZusatz = (' left join (%s) as gtab on %s.objid = gtab.objidgistab') % (sql4GISDB,geoTabName)
-            else:
-                sqlZusatz = (' left join %s  on %s.objid = %s.%s_objid') % (GISDbTab,geoTabName,GISDbTab,GISDbTab)
-
-        else:
-            sqlZusatz=""
-        
-        if myQGIS_VERSION_INT() < 21200: # ab Lyon
-            # Unterabfrage definieren - macht das Ganze aber ziemlich langsam und ist bei Essen nicht mehr notwendig
-            IndexGen1="(SELECT row_number() over () AS _uid_,* FROM "
-            IndexGen2=" as dummy)"
-            Key="_uid_"
-        else:
-            IndexGen1 =''
-            IndexGen2 =''
-            Key="objid"
-        
-        #08.08.16:
-        # table='%s' --> table=\"%s\": sicherheitshalber für alle, obwohl es nur beim Kreis Probleme gab
-        
-        # in CAIGOS 2016 steht der EPSG-Code jetzt korrekt in PostGIS
-        # der neue Code ist irgendwie schlecht aus dem alten ableitbar --> 2 komplett verschiedene Varianten 
-        if cgVersion == 0: # alte Variante mit EPSG-Einabu
-            if Art == 0: # Point      
-                table=("%s(select *, st_setsrid(st_translate(shape, deltar, deltah),%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
-            if Art == 1: # Line
-                table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 2: # Kreis
-                # 05.10.16: Kreis als Fläche
-                #table= ("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                #uri=("%s key='%s' srid=%d type=CircularString table='%s' (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, table, where)
-                table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                if myQGIS_VERSION_INT()  < 21200:
-                    uri=None
-                else:
-                    uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-
-            if Art == 3: # Text
-                sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
-                table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 31: # Textreferenzpfeil
-                # 1. Punkt steht in "shape" 
-                # 2. Punkt "st_translate(shape, deltar, deltah)"           
-                sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
-                table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 4: # Bemaßung
-                uri = None
-            if Art == 5: # Polylinie
-                table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
-            if Art == 6: # Fläche
-                table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        else:
-            if Art == 0: # Point      
-                table=("%s(select *, st_translate(shape, deltar, deltah) as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
-            if Art == 1: # Line
-                table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 2: # Kreis
-                table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as geom from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-                if myQGIS_VERSION_INT()  < 21200:
-                    uri=None
-                else:
-                    uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 3: # Text
-                sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
-                table=("%s(select *," + sShape  + " as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 31: # Textreferenzpfeil
-                # 1. Punkt steht in "shape" 
-                # 2. Punkt "st_translate(shape, deltar, deltah)"           
-                sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
-                table=("%s(select *," + sShape  + " as geom from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-            if Art == 4: # Bemaßung
-                uri = None
-            if Art == 5: # Polylinie
-                table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
-            if Art == 6: # Fläche
-                table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-                uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        return uri
-    """    
-    def sqlLayerIsEmpty(self, Art, LayerID):
-        geoTabName=self.GeoTabName4Art(Art)
-        sSQL = "SELECT count(*) FROM " + geoTabName + " where layerid='" + LayerID + "'"
+"""
+/***************************************************************************/
+                    Teil4: Zugriffe auf PostgreSQL
+/***************************************************************************/
+"""
+def dbLayerStrukturByID(LayerID, AktDB = None):
+    # Lesen und übergeben
+    #      0        1       2      3
+    # Fachschale, Thema, Gruppe, Layer
+    if AktDB:
+        db1=AktDB
+    else:
         db1 = pgCurrentDB()
-        db1.Open()
-        rs1 = db1.OpenRecordset (sSQL)
-        rs1.next() # erster (und letzer) Datensatz
-        if rs1.value(0) > 0:
-            Wert = True
-        else:    
-            Wert = False
-        del (rs1)
-        del (db1)
-        return Wert
-    """    
-    def sqlStruk4Layer(self, LayerID):
-        sSQL = (u"SELECT dbname  as Fachschale, entityname as Thema, groupname as Gruppe, layername as layer, layerid, layertyp "
-                    "FROM (enttable INNER JOIN grptable ON enttable.entityid = grptable.entityid) "
-                    "INNER JOIN lyrtable ON (grptable.groupid = lyrtable.groupid) AND (enttable.entityid = lyrtable.entityid) "
-                    "WHERE layerid='%s'") % (LayerID)
-        db1 = pgCurrentDB()
-        db1.Open()
-        rs1 = db1.OpenRecordset (sSQL)
-        rs1.next() # erster (und letzer) Datensatz
-        ausg = rs1.value(0),rs1.value(1),rs1.value(2),rs1.value(3)
-        del (rs1)
-        del (db1)
-        return ausg
+    rs1 = db1.OpenRecordset (sqlStruk4Layer(LayerID))
+    rs1.next() # erster (und letzer) Datensatz
+    ausg = rs1.value(0),rs1.value(1),rs1.value(2),rs1.value(3)
+    del (rs1)
+    if not AktDB: del (db1)
+    return ausg
 
-    def sqlStrukAlleLayer(self,LayerList = None, Richtung=''):
-        sSQL=""
-        if LayerList:
-            sSQL = "WHERE layerid In ("
-            sSQL = sSQL + LayerList
-            sSQL = sSQL + ")"
-        # Alphabetische Reihenfolge für Explorerbaum, dabei Layername DESC, da Einfügereihenfolge über moveLayer umgekeht
-        sSQL = (u"SELECT dbname  as Fachschale, entityname as Thema, groupname as Gruppe, layername as layer, layerid, layertyp "
-                    "FROM (enttable INNER JOIN grptable ON enttable.entityid = grptable.entityid) "
-                    "INNER JOIN lyrtable ON (grptable.groupid = lyrtable.groupid) AND (enttable.entityid = lyrtable.entityid) "
-                    "%s order by dbname,entityname,groupname,layername %s") % (sSQL, Richtung)
-        return sSQL
-
-    def sqlAlleLayerByPriAndGISDB(self,UserNum = '000', LayerList = None):
-        sSQL=""
-        if LayerList:
-            if len(LayerList.split(",")) == 1:
-                sSQL =   "AND lyrtable.layerid = " + LayerList     
-            else:
-                sSQL = "AND lyrtable.layerid In ("
-                sSQL = sSQL + LayerList
-                sSQL = sSQL + ")"
-        # Ebenen nach Prioritäten sortiert
-        sSQL = (u"SELECT layername, lyrtable.layerid, lyrtable.layertyp, dbname, priority "
-                    "FROM prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id "
-                    "WHERE usernr='%s' %s "
-                    "UNION ALL "
-                    ""
-                    "select DISTINCT  layername,T1.layerid, layertyp,  dbname, priority from  ( "
-                    "SELECT layername || '(RL)' as layername, lyrtable.layerid, 31 as layertyp, ''::text as  dbname, priority FROM prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid "
-                    "LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id WHERE usernr='%s' AND lyrtable.layertyp=3 %s "
-                    " \n") % (UserNum,sSQL,UserNum, sSQL) # 23.08.16 zusätzlich nach Layertyp (damit bei gleicher Pri Punkte über Flächen liegen)
+def db2sqlGisDBShortFieldName (TabName, AktDB = None):
+    # Erzeugt einen SQL-String für den Zugriff auf eine GISDB mit kurzen Aliasnamen
+    if AktDB:
+        db=AktDB
+    else:
+        db = pgCurrentDB()
         
-        sSQL = sSQL + ") as T1 inner join "
-        sSQL = sSQL + "(SELECT layerid FROM  ( SELECT * FROM (" + self.sqlAtt4Massstab ( 3,None, UserNum) + ") AS dummy "
-        sSQL = sSQL + ("INNER JOIN textatttable ON dummy.ATTid = textatttable.ta_idfa "
-                "WHERE textatttable.ta_ag=0 and textatttable.lineattr != '{00000000-0000-0000-0000-000000000000}' ORDER BY attnum\n")
-                
-        sSQL = sSQL + (") AS t1 "
-        "INNER JOIN "
-        "  (SELECT DISTINCT textssqlspatial.defid, layerid "
-        "   FROM textssqlspatial "
-        "   LEFT JOIN deftable ON textssqlspatial.defid =deftable.defid "
-        "   WHERE  textssqlspatial.defid != '{00000000-0000-0000-0000-000000000000}' "
-        "   UNION ALL SELECT defid, layerid "
-        "   FROM prptable "
-        "   WHERE usernr='000') AS t2 ON t1.adid = t2.defid) as T2 on T1.layerid = T2.layerid "
-        "   ORDER BY priority DESC,layertyp ")
-        return sSQL
-    
-    def sqlAllAttDef4Layer(self, Art, LayerID):
-        # verwendete Objekt-Attributdefinitionen aus der Geometrietabelle holen
-        TabName=self.GeoTabName4Art(Art)
-        if TabName:
-            return (u"SELECT DISTINCT %s.defid, COALESCE(defname, '        ') as sortdefname FROM %s LEFT JOIN deftable ON %s.defid =deftable.defid where layerid='%s' order by sortdefname") % (TabName,TabName,TabName,LayerID)
+    rs = db.OpenRecordset("select column_name from information_schema.columns where table_name='" + TabName + "'")
+    s = "select "
+    while (rs.next()) :
+        if rs.value(0).replace(TabName + '_','') == 'objid':
+            s = s + rs.value(0) + " as objidgistab," # objid wäre sonnst doppelter Name in Abfrage, da Spalte objid auch in GeoTab
         else:
-            return None
+            s = s + rs.value(0) + " as " + rs.value(0).replace(TabName + '_','') + ","
+    # letztes , weg
+    s = s[:-1]
+    s=  s + " FROM " + TabName 
+    del rs
+    if not AktDB: del (db)
+    return s
+
+
+def dbExistsGISDBTab(GISDBTabName, AktDB = None):
+    # ermittlt, ob eine bestimmte GISDB-Tabelle existiert
+    # --> Tabellenname und ein Feld <tabname>_objid muss exisitieren
+    if AktDB:
+        db=AktDB
+    else:
+        db = pgCurrentDB()
+
+    sDB=GISDBTabName.lower()
+    sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname = '%s_objid'")%(sDB,sDB)
+    rs=db.OpenRecordset(sSQL)
+    Antw=rs.size()==1
+    del rs
+    if not AktDB: del (db)
+    return (Antw) 
+
+
+
+def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape):
+    bDeltaTexte = True # evtl. später mal optional 
+    uri = None
+    geoTabName=GeoTabName4Art(Art)
+    if LayerID:
+        where="layerid='%s'" % (LayerID)
+    else:
+        where =""
     
-    def AttDefID4Layer(self, db, LayerID, cgUser):
-        # Attributdefinitionen der Ebene auslesen
-        sqlString=("select defid from prptable where layerid='%s' and usernr='%s'") %(LayerID, cgUser)
-        rs = self.OpenRecordset(db,sqlString)
-        rs.next() # erster (und letzer) Datensatz
-        Wert = rs.value(0)
-        del(rs)
-        return Wert
+    if b3DDar:
+        ken3D="Z"
+    else:    
+        ken3D=""
+        
+    if GISDbTab:
+        if bShape:
+            # Tabellennamen aus Spalte kürzen, da Shape nur 10 Zeichen
+            sql4GISDB = db2sqlGisDBShortFieldName(GISDbTab).replace("\\","")
+            sqlZusatz = (' left join (%s) as gtab on %s.objid = gtab.objidgistab') % (sql4GISDB,geoTabName)
+        else:
+            sqlZusatz = (' left join %s  on %s.objid = %s.%s_objid') % (GISDbTab,geoTabName,GISDbTab,GISDbTab)
+
+    else:
+        sqlZusatz=""
     
-    def AttDefName4ID (self,db,DefID):
-        # Name der Attributdefinition aus der DefID ermitteln
-        sqlString=("SELECT defname FROM  deftable WHERE defid ='%s'") % (DefID)
-        rs = self.OpenRecordset(db,sqlString)
-        rs.next() # erster (und letzer) Datensatz
-        Wert = rs.value(0)
-        del(rs)
-        return Wert
-
-    def NeedLine4TextLayer(self,db,LayerID, cgUser):  
-        sqlString= self.sqlAtt4Massstab ( 3,None, cgUser)
-        sqlString = "select count(*) from (" + sqlString + ") as t1 inner join ("
-        sqlString = sqlString + ("SELECT DISTINCT textssqlspatial.defid FROM textssqlspatial LEFT JOIN deftable ON textssqlspatial.defid =deftable.defid where layerid='%s' and textssqlspatial.defid != '{00000000-0000-0000-0000-000000000000}' union all select defid from prptable where layerid='%s' and usernr='%s'")%(LayerID,LayerID,cgUser)
-        sqlString = sqlString + ") as t2 on t1.adid = t2.defid"
-
-        rs = self.OpenRecordset(db,sqlString)
-        rs.next() # erster (und letzer) Datensatz
-        Wert=rs.value(0) != 0
-        del(rs)
-        return Wert
+    if myQGIS_VERSION_INT() < 21200: # ab Lyon
+        # Unterabfrage definieren - macht das Ganze aber ziemlich langsam und ist bei Essen nicht mehr notwendig
+        IndexGen1="(SELECT row_number() over () AS _uid_,* FROM "
+        IndexGen2=" as dummy)"
+        Key="_uid_"
+    else:
+        IndexGen1 =''
+        IndexGen2 =''
+        Key="objid"
     
-    def DBFAnpassen (self,shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None):
-        paramanz=0
-        if likeShpDat: paramanz+=1
-        if negativliste: paramanz+=1
-        if positivliste: paramanz+=1
-        if paramanz > 1: return -1
-        delAnz=0
-        
-        source = ogr.Open(shpdat, update=True)
-        if source is None:
-            addFehler(tr('ogr: can not open: ') + shpdat)
-            return
-        layer = source.GetLayer()
-        laydef = layer.GetLayerDefn()
-        
-        # alle Spaltennamen ermitteln
-        bOrgSHP = False
-        schema = []
-        for n in range(laydef.GetFieldCount()):
-            if laydef.GetFieldDefn(n).name == "shape": bOrgSHP = True # shape ist immer letzte Spalte der CAIGOS-Geodaten
-            schema.append(laydef.GetFieldDefn(n).name)
-        
+    #08.08.16:
+    # table='%s' --> table=\"%s\": sicherheitshalber für alle, obwohl es nur beim Kreis Probleme gab
+    
+    # in CAIGOS 2016 steht der EPSG-Code jetzt korrekt in PostGIS
+    # der neue Code ist irgendwie schlecht aus dem alten ableitbar --> 2 komplett verschiedene Varianten 
+    if cgVersion == 0: # alte Variante mit EPSG-Einabu
+        if Art == 0: # Point      
+            table=("%s(select *, st_setsrid(st_translate(shape, deltar, deltah),%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
+        if Art == 1: # Line
+            table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 2: # Kreis
+            # 05.10.16: Kreis als Fläche
+            #table= ("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            #uri=("%s key='%s' srid=%d type=CircularString table='%s' (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, table, where)
+            table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            if myQGIS_VERSION_INT()  < 21200:
+                uri=None
+            else:
+                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
 
-        if bNoGISDBIntern:
-            go = False
-            for sp in schema:
-                if sp == "shape":
-                    go=True  # shape ist immer letzte Spalte der CAIGOS-Geodaten
+        if Art == 3: # Text
+            sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
+            table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 31: # Textreferenzpfeil
+            # 1. Punkt steht in "shape" 
+            # 2. Punkt "st_translate(shape, deltar, deltah)"           
+            sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
+            table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 4: # Bemaßung
+            uri = None
+        if Art == 5: # Polylinie
+            table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
+        if Art == 6: # Fläche
+            table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+    else:
+        if Art == 0: # Point      
+            table=("%s(select *, st_translate(shape, deltar, deltah) as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
+        if Art == 1: # Line
+            table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 2: # Kreis
+            table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as geom from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            if myQGIS_VERSION_INT()  < 21200:
+                uri=None
+            else:
+                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 3: # Text
+            sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
+            table=("%s(select *," + sShape  + " as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 31: # Textreferenzpfeil
+            # 1. Punkt steht in "shape" 
+            # 2. Punkt "st_translate(shape, deltar, deltah)"           
+            sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
+            table=("%s(select *," + sShape  + " as geom from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+        if Art == 4: # Bemaßung
+            uri = None
+        if Art == 5: # Polylinie
+            table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
+        if Art == 6: # Fläche
+            table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+    return uri
+    
 
-                if go :
-                    if sp in ["id", "objidgista", "pmfmark","pmfkey", "datestampn", "timestampn","datestampe", "timestampe"]:
-                        layer.DeleteField(laydef.GetFieldIndex(sp))
-                        delAnz+=1 
-                    
-        if bOnlyDarField and bOrgSHP:
-            for sp in schema:
-                if sp == "shape":
-                    layer.DeleteField(laydef.GetFieldIndex("shape"))
-                    break  # shape ist immer letzte Spalte der CAIGOS-Geodaten
+"""    
+def sqlLayerIsEmpty( Art, LayerID):
+    geoTabName=GeoTabName4Art(Art)
+    sSQL = "SELECT count(*) FROM " + geoTabName + " where layerid='" + LayerID + "'"
+    db1 = pgCurrentDB()
+    db1.Open()
+    rs1 = db1.OpenRecordset (sSQL)
+    rs1.next() # erster (und letzer) Datensatz
+    if rs1.value(0) > 0:
+        Wert = True
+    else:    
+        Wert = False
+    del (rs1)
+    del (db1)
+    return Wert
+"""    
 
-                if not sp in ["defid", "alpha", "pstext"]:
+def AttDefID4Layer( db, LayerID, cgUser):
+    # Attributdefinitionen der Ebene auslesen
+    sqlString=("select defid from prptable where layerid='%s' and usernr='%s'") %(LayerID, cgUser)
+    rs = db.OpenRecordset(sqlString)
+    rs.next() # erster (und letzer) Datensatz
+    Wert = rs.value(0)
+    del(rs)
+    return Wert
+
+def AttDefName4ID (db,DefID):
+    # Name der Attributdefinition aus der DefID ermitteln
+    sqlString=("SELECT defname FROM  deftable WHERE defid ='%s'") % (DefID)
+    rs = db.OpenRecordset(sqlString)
+    rs.next() # erster (und letzer) Datensatz
+    Wert = rs.value(0)
+    del(rs)
+    return Wert
+
+def NeedLine4TextLayer(db,LayerID, cgUser):  
+    sqlString= sqlAtt4Massstab ( 3,None, cgUser)
+    sqlString = "select count(*) from (" + sqlString + ") as t1 inner join ("
+    sqlString = sqlString + ("SELECT DISTINCT textssqlspatial.defid FROM textssqlspatial LEFT JOIN deftable ON textssqlspatial.defid =deftable.defid where layerid='%s' and textssqlspatial.defid != '{00000000-0000-0000-0000-000000000000}' union all select defid from prptable where layerid='%s' and usernr='%s'")%(LayerID,LayerID,cgUser)
+    sqlString = sqlString + ") as t2 on t1.adid = t2.defid"
+
+    rs = db.OpenRecordset(sqlString)
+    rs.next() # erster (und letzer) Datensatz
+    Wert=rs.value(0) != 0
+    del(rs)
+    return Wert
+
+def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None):
+    paramanz=0
+    if likeShpDat: paramanz+=1
+    if negativliste: paramanz+=1
+    if positivliste: paramanz+=1
+    if paramanz > 1: return -1
+    delAnz=0
+    
+    source = ogr.Open(shpdat, update=True)
+    if source is None:
+        addFehler(tr('ogr: can not open: ') + shpdat)
+        return
+    layer = source.GetLayer()
+    laydef = layer.GetLayerDefn()
+    
+    # alle Spaltennamen ermitteln
+    bOrgSHP = False
+    schema = []
+    for n in range(laydef.GetFieldCount()):
+        if laydef.GetFieldDefn(n).name == "shape": bOrgSHP = True # shape ist immer letzte Spalte der CAIGOS-Geodaten
+        schema.append(laydef.GetFieldDefn(n).name)
+    
+
+    if bNoGISDBIntern:
+        go = False
+        for sp in schema:
+            if sp == "shape":
+                go=True  # shape ist immer letzte Spalte der CAIGOS-Geodaten
+
+            if go :
+                if sp in ["id", "objidgista", "pmfmark","pmfkey", "datestampn", "timestampn","datestampe", "timestampe"]:
                     layer.DeleteField(laydef.GetFieldIndex(sp))
                     delAnz+=1 
+                
+    if bOnlyDarField and bOrgSHP:
+        for sp in schema:
+            if sp == "shape":
+                layer.DeleteField(laydef.GetFieldIndex("shape"))
+                break  # shape ist immer letzte Spalte der CAIGOS-Geodaten
 
-                    
-        if likeShpDat:
-            print("hier")
-            likesource = ogr.Open(likeShpDat, update=True)
-            likelayer = likesource.GetLayer()
-            likelaydef = likelayer.GetLayerDefn()
-            likeschema = []
-            for n in range(likelaydef.GetFieldCount()):
-                likeschema.append(likelaydef.GetFieldDefn(n).name) 
-            likesource.Destroy()
-            for sp in schema:
-                if not sp in likeschema:
-                    layer.DeleteField(laydef.GetFieldIndex(sp))
-                    delAnz+=1   
+            if not sp in ["defid", "alpha", "pstext"]:
+                layer.DeleteField(laydef.GetFieldIndex(sp))
+                delAnz+=1 
 
-        elif positivliste:
-            # alle anderen löschen
-            for sp in schema:
-                if not sp in positivliste:
-                    layer.DeleteField(laydef.GetFieldIndex(sp))
-                    delAnz+=1
-        elif negativliste:
-            for sp in schema:
-                if sp in negativliste:
-                    layer.DeleteField(laydef.GetFieldIndex(sp))  
-                    delAnz+=1
-        source.Destroy()   
-        return delAnz
+                
+    if likeShpDat:
+        print("hier")
+        likesource = ogr.Open(likeShpDat, update=True)
+        likelayer = likesource.GetLayer()
+        likelaydef = likelayer.GetLayerDefn()
+        likeschema = []
+        for n in range(likelaydef.GetFieldCount()):
+            likeschema.append(likelaydef.GetFieldDefn(n).name) 
+        likesource.Destroy()
+        for sp in schema:
+            if not sp in likeschema:
+                layer.DeleteField(laydef.GetFieldIndex(sp))
+                delAnz+=1   
+
+    elif positivliste:
+        # alle anderen löschen
+        for sp in schema:
+            if not sp in positivliste:
+                layer.DeleteField(laydef.GetFieldIndex(sp))
+                delAnz+=1
+    elif negativliste:
+        for sp in schema:
+            if sp in negativliste:
+                layer.DeleteField(laydef.GetFieldIndex(sp))  
+                delAnz+=1
+    source.Destroy()   
+    return delAnz
+    
 if __name__ == "__main__":
-    cls = pgDataBase()
+    print (dbLayerStrukturByID('{893F0B09-8BE1-4A14-91A3-EB3AD7D3D784}'))
+    p1="dbname='cgStrassendokumentation' host=10.201.201.21 port=5432 user='CAIGOS' password='CAIGOS'"
+    vlp = VectorLayerPath (5,p1,25833, '{623E894A-9944-4F62-A337-DF713DC42439}',False, 'd4ustdok_qs', 0, True)
+    print (vlp)
+    #print (AktDB.CheckVerbDaten(None,None,None,None, True))
+    #print ("crashtest1")
 
-    shpdat="B:/CAIGOS_Globe/files/zwickau/downloaddienst/DD007949-81CD-4A16-8A7A-A808C7CFF155/61-L_BPlanAbgrNutzung.shp"
-    likedat="B:/CAIGOS_Globe/files/zwickau/downloaddienst/DD007949-81CD-4A16-8A7A-A808C7CFF155/61-F_BPlanWohngebiete.shp"
-    #def DBFAnpassen   (self,shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None):
-    #print (cls.DBFAnpassen (shpdat, True,           True,           likedat,           None, None))
-    print ("fertig")
-    """
-    print (cls.sqlStruk4Layer('{72EA7AC0-C293-4F1B-871B-DDC30113E76B}'))
-    db = pgDatabaseNeu("","pl309","5432", "tkTempProjekt","caigos","*****")
-    if not db.Open():
-        print ('-----------------')
-        print (db.getFehler())
-        print ('-----------------')
-    else:
-        rs = db. OpenRecordset ("select * from lyrtable")
-        if rs:
-            rs.next()
-            print (rs.value(0))
-        else:
-            print ('-----------------')
-            print (db.getFehler())
-            print ('-----------------') 
 
-    db1 = pgCurrentDB()
-    if db1.Open():
-        rs = db1. OpenRecordset ("select * from lyrtable")
-        rs.next()
-        print ("CurrentDB"+rs.value(0))
-    del (db1)
-    del (db)
-
-    # zur zum lokalen testen
-    #from qgis.core import QgsDataSourceUri
-    #uri = QgsDataSourceUri()
-    #app = QApplication(sys.argv)
-    #print (str(myQGIS_VERSION_INT()))
-    #clsdb=pgDatabaseNeu()
-    #db = clsdb.CurrentDB()
-    #print (clsdb.sqlStruk4Layer(db,'{72EA7AC0-C293-4F1B-871B-DDC30113E76B}'))
-    
-
-    #rs = clsdb.OpenRecordset(db,"select column_name from information_schema.columns where table_name='d4ustdok_abs'")
-    #clsdb.CloseDatabase
-    #s = ""
-    #while (rs.next()):
-    #    s = s + rs.value(0) + " as " + rs.value(0).replace('d4ustdok_abs_','') + ","
-    #print s    
-    #print clsdb.sqlGisDBShortFieldName('d4ustdok_qs')
-    #print clsdb.sqlAtt4Massstab ( 31, '{C96A820A-6309-4068-9051-187E025ED271}', '000')
-    #print clsdb.VectorLayerPath( 31, "ConnInfo",25833, "{3B2187AD-3F62-479A-B33F-004E51B81F45}",False , False)
-    #print clsdb.sqlAllAttDef4Layer( 3, "{3B2187AD-3F62-479A-B33F-004E51B81F45}")
-    #print clsdb.AttDefID4Layer(db, "{3B2187AD-3F62-479A-B33F-004E51B81F45}", 0)
-    #print clsdb.NeedLine4TextLayer(None,"{3B2187AD-3F62-479A-B33F-004E51B81F45}",'000') 
-    #print clsdb.sqlAlleLayerByPriAndGISDB('000')
-    #print clsdb.NeedLine4TextLayer(None,'LayerID', 'cgUser')
-
-    
-    from uiToolsPolygonDirection import *
-    cls = uiToolsPolygonDirection()
-    sSQL=cls.sqlEbene4AttID("{4626E491-62BF-4874-A3D0-897EB4D7D507}")
-    
-    if not qry.exec_(sSQL ):
-            err = ("OpenRecordset:"  + "\n" +
-            "Text: " + qry.lastError().text() +  "\n" +
-            "Type: " + str(qry.lastError().type()) +  "\n" +
-            "Number: " + str(qry.lastError().number()) +  "\n" +
-            "SQL: " + "sqlString")
-            errbox ("Fehler: " + err)
-
-    qry = clsdb.OpenRecordset(db,sSQL,True)
-
-    #print clsdb.CheckDBTabSpalte ("xx")
-    #print clsdb.CheckDBTabSpalte ("d4uadress")
-    #print clsdb.CheckDBTabSpalte ("xx")
-    #clsdb.CheckVerbDaten(None,None,None,None, False)
-    #db = clsdb.CurrentDB()
-    #print clsdb.sqlAttParam4IDandArt(1, "{CFAC4A38-A2EE-4419-AE29-D0A0BACAC3B5}", 0)
-    #print clsdb.sqlAtt4Massstab(5, "{AA27D166-0453-4D7F-9640-4619C8DBA257}", 0)
-    #print clsdb.sqlAtt4Massstab(6, "{9B9D21A1-A8D0-4EEF-883D-7B7AC6DA03E5}", 0)
-    if db:
-        #def VectorLayerPath (self, Art, ConnInfo, Epsg, LayerID):
-        #print clsdb.VectorLayerPath(2,clsdb.GetConnString(),25833,"{88855ADA-E854-4025-85EC-2C6805B597DB}")
-        
-        #print clsdb.sqlAttParam4IDandArt(6, "{CFAC4A38-A2EE-4419-AE29-D0A0BACAC3B5}", 0)
-        #print clsdb.sqlAtt4Massstab(0,"{FE5E17AD-2C4D-423E-A705-7393C57914D8}",0)
-        #print sqlAtt4Massstab4All(0,"AktDef")
-        #print clsdb.sqlAttParam4IDandArt( 1, "{70F5BC71-93C3-4282-A0F4-2EE198EE51E0}", Group = 0)
-        #rs=clsdb.OpenRecordset(db,clsdb.sqlAttParam4IDandArt( 1, "{70F5BC71-93C3-4282-A0F4-2EE198EE51E0}", Group = 0))
-
-        clsdb.CloseDatabase(db)
-    else:
-        print "Fehler"
-    #clsdb.Check(
-    """
 

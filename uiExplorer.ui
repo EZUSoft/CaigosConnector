@@ -231,6 +231,13 @@
          </item>
         </layout>
        </item>
+       <item row="4" column="2">
+        <widget class="QPushButton" name="cmdReset">
+         <property name="text">
+          <string>Standardeinstellungen</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>

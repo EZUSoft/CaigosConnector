@@ -53,6 +53,7 @@ try:
     from uiAbout import uiAbout
     from uiDBAnbindung import uiDBAnbindung
     from clsDatenbank import *
+    from modCGSqlCodes import *
     from clsQGISAction import clsQGISAction
 
 except:
@@ -67,6 +68,7 @@ except:
     from .uiAbout import uiAbout
     from .uiDBAnbindung import uiDBAnbindung
     from .clsDatenbank import *
+    from .modCGSqlCodes import *
     from .clsQGISAction import clsQGISAction
 
 
@@ -223,30 +225,27 @@ class clsCaigosConnector:
         resetFehler()
         resetHinweis()
         User = '000'
-        clsdb = pgDataBase()
-        if clsdb.CheckVerbDaten(None,None,None,None, True):
-            db=clsdb.CurrentDB()
-        else:
+        db=pgCurrentDB()
+        if not db.CheckVerbDaten(None,None,None,None, None, True):
             db=None  
         
         cls=uiExplorer()
+        
         if db :
-            qry = clsdb.OpenRecordset(db, clsdb.sqlStrukAlleLayer()) 
-            projekt=clsdb.GetCGProjektName()
+            qry = db.OpenRecordset(sqlStrukAlleLayer()) 
+            projekt=GetCGProjektName()
             guiListe, bGenDar, bPrjNeu, iGruppe, b3DDar, bDBTab, bSHPexp, bLeer = cls.LayerErmitteln(projekt, qry)
             if guiListe:
                 InStr = "','".join(guiListe)
                 InStr = "'" + InStr + "'"
                 # QMessageBox.information( None,'Datenbankzugriff',InStr) 
-                qry = clsdb.OpenRecordset(db, clsdb.sqlStrukAlleLayer(InStr,'DESC'))
+                qry = db.OpenRecordset(sqlStrukAlleLayer(InStr,'DESC'))
 
-                pri_gisdb = clsdb.OpenRecordset(db, clsdb.sqlAlleLayerByPriAndGISDB(User,InStr))
+                pri_gisdb = db.OpenRecordset(sqlAlleLayerByPriAndGISDB(User,InStr))
 
                 c = clsQGISAction()
-                c.QGISBaum(clsdb,User,projekt,pri_gisdb,qry, bGenDar, bPrjNeu,iGruppe, b3DDar, bDBTab, bSHPexp, bLeer)
+                c.QGISBaum(db,User,projekt,pri_gisdb,qry, bGenDar, bPrjNeu,iGruppe, b3DDar, bDBTab, bSHPexp, bLeer)
 
-                #while (qry.next()):
-                #    printlog(qry.value(3))
 
         else:          
             reply = QMessageBox.question(None, 'Fehler beim Datenbankanbindung',"Soll der Dialog \n'CAIGOS PostGIS Datenbankverbindung anpassen'\naufgerufen werden", QMessageBox.Yes |  QMessageBox.No, QMessageBox.No)
@@ -254,52 +253,11 @@ class clsCaigosConnector:
                 self.SetzeDBAnbindung()
 
 
-    def UTFTesten(self):
-        resetFehler()
-        resetHinweis()
-        User = '000'
-        clsdb = pgDataBase()
-
-        if clsdb.CheckVerbDaten(None,None,None,None, True):
-            return None, None
-            db=clsdb.CurrentDB()
-        else:
-             db=None  
-
-        cls=uiExplorer(self.fncCGFensterTitel())
-        if db :
-            qry = clsdb.OpenRecordset(db, clsdb.sqlStrukAlleLayer()) 
-            projekt=clsdb.GetCGProjektName()
-            #guiListe, bGenDar, bPrjNeu, iGruppe, b3DDar, bDBTab, bSHPexp, bLeer = cls.LayerErmitteln(projekt, qry)
-            #if guiListe:
-            #    InStr = "','".join(guiListe)
-            #    InStr = "'" + InStr + "'"
-                # QMessageBox.information( None,'Datenbankzugriff',InStr) 
-            qry = clsdb.OpenRecordset(db, clsdb.sqlStrukAlleLayer(None,'DESC'))
-            #print clsdb.sqlStrukAlleLayer(None,'DESC')
-            pri_gisdb = clsdb.OpenRecordset(db, clsdb.sqlAlleLayerByPriAndGISDB(User,None))
-            return qry,pri_gisdb
     
     def SetzeDBAnbindung(self):
         cls=uiDBAnbindung()
         cls.exec_()    
   
+  
 if __name__ == "__main__":
-        from qgis.utils import *
-        app = QApplication(sys.argv)
-
-    #while True:
-        c = clsCaigosConnector(QCoreApplication.instance())
-        qry,qry4pri=c.UTFTesten()
-        """
-        while (qry4pri.next()):
-            lName=toUTF8(qry4pri.value(0))
-            if lName != qry4pri.value(0):
-                printlog (qry4pri.value(0) + ": UTF Korrektur vorm Erstellen notwendig")
-                xxx
-        while (qry.next()):
-            lName=toUTF8(qry.value(3))
-            if lName != qry.value(3):
-                printlog (qry.value(3) + ": UTF Korrektur nach Erstellen notwendig")
-                xxx
-        """
+    print("------------------- durch ---------------------------------------")

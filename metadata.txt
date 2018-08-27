@@ -14,8 +14,13 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.6
-changelog=_______________
+version=0.7
+changelog=30.08.2018 V0.7:
+        - Anpassungen für QGIS 3.2.1
+        - Komplettüberarbeitung Datenbankzugriff
+        - (anders) auf leeres Signaturverzeichnis bei V2016R3 reagieren 
+        
+         _______________
         20.02.2018 V0.6:
         - Umstellung auf QGIS 3.0 
 
@@ -29,6 +34,7 @@ changelog=_______________
           - EPSG-Code aus Geometrietabellen
           - Projekteinstellungen aus Admindatenbank
         - Shapedatei mit (QGIS-) Darstellung speichern
+
          _______________
         25.10.2016 V0.3:
         - optionaler Export nach ESRI-Shape
@@ -36,6 +42,7 @@ changelog=_______________
         - optionale Übernahme von Ebenen ohne Objekte
         - Caigos Geometietyp Kreis wird unterstützt
         - Textreferenzlinien werden unterstützt
+
         _______________
         27.06.2016 V0.2
         - Fehler bei fehlendem Domainnamen (Linux) beseitigt
@@ -43,6 +50,7 @@ changelog=_______________
         - SVG als UFT-8 schreiben, da Umlaute (als Text) vorkommen können
         - Auswahl der CAIGOS Darstellungsgruppe
         - optionale Einbindung der GISDB-Tabellen
+
         _______________
         30.05.2016 V0.1:
         -  Freigabe einer ersten Version

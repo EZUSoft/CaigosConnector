@@ -1,0 +1,18 @@
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="10">
+            <File firstVisibleLine="29" xOffset="0" scrollWidth="1728" startPos="1740" endPos="1740" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\clsCaigosConnector.py" />
+            <File firstVisibleLine="691" xOffset="0" scrollWidth="3368" startPos="29860" endPos="29860" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\clsDatenbank.py" />
+            <File firstVisibleLine="219" xOffset="0" scrollWidth="1400" startPos="9272" endPos="9288" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\clsQGISAction.py" />
+            <File firstVisibleLine="967" xOffset="0" scrollWidth="1600" startPos="46035" endPos="45997" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\clsRenderingByQML.py" />
+            <File firstVisibleLine="42" xOffset="0" scrollWidth="1328" startPos="10457" endPos="10463" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\fnc4all.py" />
+            <File firstVisibleLine="12" xOffset="0" scrollWidth="880" startPos="1264" endPos="1264" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\fnc4CaigosConnector.py" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="664" startPos="0" endPos="0" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\fnc4sqlite.py" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="616" startPos="0" endPos="0" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\uiAbout.py" />
+            <File firstVisibleLine="21" xOffset="0" scrollWidth="616" startPos="1886" endPos="1886" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\uiDBAnbindung.py" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="616" startPos="0" endPos="0" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\uiExplorer.py" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1032" startPos="0" endPos="0" selMode="0" lang="Python" encoding="-1" filename="C:\Users\junghans3\.qgis2\python\plugins\CaigosConnector\modCGSqlCodes.py" />
+        </mainView>
+        <subView activeIndex="0" />
+    </Session>
+</NotepadPlus>
