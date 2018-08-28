@@ -45,9 +45,11 @@ except:
 try:
     from fnc4all import *
     from fnc4CaigosConnector import *
+    from modDownload import DownLoadOverQT
 except:
     from .fnc4all import *   
     from .fnc4CaigosConnector import *
+    from .modDownload import DownLoadOverQT
 
 
 
@@ -179,7 +181,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         bSaveDar = True if s.value( "bSaveDar", "Ja" )  == "Ja"   else False
         bOnlyDarField = True if s.value( "bOnlyDarField", "Ja" )  == "Ja"   else False
         bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
-
+        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"   
         iCodePage=s.value( "iCodePage", 0)
         # 25.10.16 Zeile war deaktiviert, warum!?
         self.txtZielPfad.setText(s.value( "txtSHPDir", "" ))
@@ -206,7 +208,10 @@ class uiExplorer(QDialog, FORM_CLASS):
             self.rBNeu.setChecked(True)
         else:
             self.rBHinz.setChecked(True)
-        
+        try:
+            DownLoadOverQT(chkurl  + fncBrowserID() + "|" + fncProgVersion(),EZUTempDir()+'test.zip')
+        except:
+            pass
         # Aktuell nur Neuaufbau unterstützt
         self.rBNeu.setChecked(True)
         self.grpBoxProjDat.setEnabled (False)
