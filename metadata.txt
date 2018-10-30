@@ -14,8 +14,12 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.7
-changelog=30.08.2018 V0.7:
+version=0.8
+changelog=29.10.2018 V0.8:
+        - Anpassungen für QGIS 3.4.0
+        
+         _______________
+        30.08.2018 V0.7:
         - Anpassungen für QGIS 3.2.1
         - Komplettüberarbeitung Datenbankzugriff
         - (anders) auf leeres Signaturverzeichnis bei V2016R3 reagieren 

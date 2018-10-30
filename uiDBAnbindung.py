@@ -248,7 +248,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             if PrjDatNam == "":
                 Fehler = "Keine Projektdatei *.prj gefunden.\nEs wird der Datenbankname benutzt"
             else:
-                iDatNum = open(PrjDatNam)
+                iDatNum = fncUniDatOpen23(PrjDatNam,"r","cp1252")
                 PrjName =""
                 for iZeile in iDatNum:
                     iZeile=iZeile.replace("\n","")
@@ -261,6 +261,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                 QMessageBox.critical( None, u"Es sind Fehler aufgetreten", Fehler )
         except: # catch *all* exceptions
             subLZF () 
+        iDatNum.close()
         return PrjName
         
     def OpenDBIniOrAdmDB(self):
@@ -290,7 +291,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                              prjDat=os.path.dirname(iniDat) + "/" + f
                     PrjName=self.ProjektAusPRJ(prjDat)
                     if PrjName == "":
-                       PrjName=self.leDBNAME.getText()
+                       PrjName=self.leDBNAME.plainText() # 29.10.18 .getText() gibt es nicht
                     self.leCGProjektName.setText(fncKorrDateiName(PrjName))
                     self.leAktDatName.setText(iniDat)
                     

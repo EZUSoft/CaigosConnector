@@ -45,6 +45,7 @@ try:
     from PyQt5.QtWidgets import QDialog, QProgressBar
     from PyQt5.QtCore import QSettings
     from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
+
 except:
     from PyQt4 import QtGui, uic
     from PyQt4.QtCore import  Qt
@@ -406,9 +407,9 @@ class clsQGISAction():
             addHinweis("Bis QGIS 2.12 ist nur eine eingeschränkte Textdarstellung möglich!\nAußerdem können keine Kreise dargestellt werden!")
         
         if len(getFehler()) > 0:
-            errbox("\n\n".join(getFehler()))
+            errbox("* " + "\n* ".join(getFehler())) # 25.10.18 "\n\n" --> "\n* "
         if len(getHinweis()) > 0:
-            msgbox(u"\n\n".join(getHinweis()))        
+            msgbox("* " + "\n* ".join(getHinweis())) # 25.10.18 "\n\n" --> "\n* " 
        
 if __name__ == "__main__":
     ('txtZielPfad').encode('utf8')

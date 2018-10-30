@@ -35,10 +35,13 @@ def fncProgKennung():
     return "CAIGOS-Konnektor" + str(myqtVersion)
 
 def fncProgVersion():
-    return "V 0.7"
+    return "V " + fncPluginVersion()
     
 def fncDebugMode(): 
-    return True
+    if (os.path.exists(os.path.dirname(__file__) + '/00-debug.txt')): # Kennung für Testrechner
+        return True
+    else:
+        return False
 
 def fncBrowserID():
     s = QSettings( "EZUSoft", fncProgKennung() )

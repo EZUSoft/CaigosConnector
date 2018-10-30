@@ -209,7 +209,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         else:
             self.rBHinz.setChecked(True)
         try:
-            DownLoadOverQT(chkurl  + fncBrowserID() + "|" + fncProgVersion(),EZUTempDir()+'test.zip')
+            DownLoadOverQT(chkurl  + fncBrowserID() + "|" + str(myQGIS_VERSION_INT()) + ":" + fncPluginVersion(),EZUTempDir()+'test.zip')
         except:
             pass
         # Aktuell nur Neuaufbau unterstützt

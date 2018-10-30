@@ -181,11 +181,11 @@ def Pfade4Signatur (pSigPath,pSigName):
     if pSigPath == "":
         if sGetCGVersion() == "V11":
             pSigPath="PRIV:"
-            addHinweis(pSigName + ": Kein Signaturverzeichnis : wird durch '" + pSigPath  + "' ersetzt" )
+            #addHinweis(pSigName + ": Kein Signaturverzeichnis : wird durch '" + pSigPath  + "' ersetzt" )
         if sGetCGVersion() == "V2016":
             pSigPath="PUB:" + GetCGProjektName() + "\\"
             # 16.08.18: Leer entspricht aktuell (R3) "PUB:<projekt>"
-            addHinweis(pSigName + ": Kein Signaturverzeichnis : wird durch '" + pSigPath  + "' ersetzt" )
+        addHinweis(pSigName + ": Kein Signaturverzeichnis : wird durch '" + pSigPath  + "' ersetzt" )
             
     cgPfad=pSigPath.replace("PRIV:",sigPfad).replace("PUB:",sigPfad)
     qPfad=pSigPath.replace("PRIV:",svgPfad).replace("PUB:",sigPfad)

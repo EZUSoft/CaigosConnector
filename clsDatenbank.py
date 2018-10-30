@@ -2,6 +2,8 @@
 """
 /***************************************************************************
  clsDatenbank: Gemeinsame Basis für QGIS2 und QGIS3
+  30.10.2018 V0.8
+  - Fehler abfangen, wenn keine DB-Verbindung definiert
   18.07.2018 V0.6
   - Komplettüberarbeitung Datenbankzugriff
  
@@ -118,6 +120,8 @@ class pgOpenDatabase():
 
     # Überlegen, ob das Open gleich mit ins Ini kommt
     def Open(self):
+        if not self.QSqlDB:
+            return None
         if self.QSqlDB.open():
             return self.QSqlDB
         else:
@@ -569,7 +573,6 @@ def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negat
 
                 
     if likeShpDat:
-        print("hier")
         likesource = ogr.Open(likeShpDat, update=True)
         likelayer = likesource.GetLayer()
         likelaydef = likelayer.GetLayerDefn()

@@ -2,6 +2,7 @@
 """
 /***************************************************************************
  modSig2SVG
+ 29.10.18: bei QGIS 3.4.0 muss Ansi explizit definiert werden
  27.09.2016 V0.3
   - Anpassung konstante Linienbreite SVG bei LINEWIDTH = off
  15.06.2016 V0.2
@@ -61,6 +62,11 @@ def Sig2SVG (qDat, zDat, Fill=False):
     if not os.path.isfile(qDat): 
         addFehler("CAIGOS Signatur '" + qDat + "'nicht gefunden")
         return False
+    
+    if (os.path.getsize(qDat) == 0): 
+        addHinweis("CAIGOS Signatur '" + qDat + "' leere Datei")
+        return False    
+    
     try:
         # on ist/war scheinbar Standard, wenn in Datei nix steht wird beim Speichern "on" geschrieben
         bLW = True
@@ -105,13 +111,17 @@ def Sig2SVG (qDat, zDat, Fill=False):
                 return str(h-float(w))
 
         
-        iDatNum = open(qDat)
+        # 29.10.18: bei QGIS 3.4.0 muss explizit Ansi definiert werden
+        iDatNum = fncUniDatOpen23(qDat,"r","cp1252")
+        
         # 15.06.16 utf-8 wegen Umlauten im Text
         #print ("Öffne: ", zDat)
         oDatNum = codecs.open(zDat,"w",'utf-8')
         z=0
         sTrenn = "@"
+
         for iZeile in iDatNum:
+            debuglog(iZeile)
             iZeile=iZeile.replace("\n","")
             if iZeile[:10] == "TOKENCHAR " : 
                 sTrenn = iZeile.split()[1]
