@@ -209,14 +209,5 @@ if __name__ == "__main__":
 
 
         resetFehler()
-        #qDat=u"X:/caigos/CAIGOS_Projekte150109/RisZwickau/signatur/Stadtplan/STPL_Kindertagesstätten.sig"
-        qDat=u"X:/caigos/CAIGOS_Projekte160808/sqlRISZwickau/signatur/BFN/BFN-Landeplatz.sig"
-        zDat = r"d:\tar\MeinePunktsignaturDatei.svg"
-        #printlog (qDat.replace("/","\\"))
-        #printlog (zDat.replace("/","\\"))
-        Sig2SVG (qDat,zDat)
-        #print (getFehler())
-        # ============
-        import codecs
-
+ 
 
