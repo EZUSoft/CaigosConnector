@@ -268,7 +268,7 @@ def sGetCGVersion():
     s = QSettings( "EZUSoft", fncProgKennung() )
     try:
         if int(s.value( "cgversion"))==0: return "V11"
-        if int(s.value( "cgversion"))==1: return "V2016"
+        if int(s.value( "cgversion"))==1: return "V20xx"
     except:
         return None
         

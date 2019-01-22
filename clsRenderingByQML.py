@@ -2,6 +2,7 @@
 """
 /***************************************************************************
  clsRenderingByQML: Gemeinsame Basis für QGIS2 und QGIS3
+  22.01.2019: 22.01.2019: Pfadfehler beseitigt (Pfade4Signatur)
   16.08.2018: (anders) auf leeres Signaturverzeichnis bei V2016R3 reagieren
   01.07.2017 V0.4
    - Erweiterung auf Caigos 2016 dadurch Umstellung von PRIV: auf "PUB:"
@@ -182,14 +183,20 @@ def Pfade4Signatur (pSigPath,pSigName):
         if sGetCGVersion() == "V11":
             pSigPath="PRIV:"
             #addHinweis(pSigName + ": Kein Signaturverzeichnis : wird durch '" + pSigPath  + "' ersetzt" )
-        if sGetCGVersion() == "V2016":
+        if sGetCGVersion() == "V20xx":
             pSigPath="PUB:" + GetCGProjektName() + "\\"
             # 16.08.18: Leer entspricht aktuell (R3) "PUB:<projekt>"
         addHinweis(pSigName + ": Kein Signaturverzeichnis : wird durch '" + pSigPath  + "' ersetzt" )
-            
+    
+    if pSigPath == "PRIV:" and sGetCGVersion() == "V20xx":
+        # 22.01.19 "Blankes "PRIV:" entspricht in Caigos bei V2019 "PUB:<projekt>" (Druck geht in die Hose)
+        pSigPath="PUB:" + GetCGProjektName() + "\\"
+        addHinweis(pSigName + ": 'PRIV:' : wird durch '" + pSigPath  + "' ersetzt" )
+        
     cgPfad=pSigPath.replace("PRIV:",sigPfad).replace("PUB:",sigPfad)
-    qPfad=pSigPath.replace("PRIV:",svgPfad).replace("PUB:",sigPfad)
-
+    # 22.01.2019: Pfadfehler beseitigt
+    # qPfad=pSigPath.replace("PRIV:",svgPfad).replace("PUB:",sigPfad) --> svg wurde in CAIGOS_Server generiert 
+    qPfad=pSigPath.replace("PRIV:",svgPfad).replace("PUB:",svgPfad)
     
     qDat= cgPfad + pSigName  + ".sig"
     qDat=qDat.replace("\\","/")

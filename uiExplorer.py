@@ -341,6 +341,7 @@ class uiExplorer(QDialog, FORM_CLASS):
     
     def Anwenden(self):
         # Check ob Import starten kann
+        chkurl="http://www.makobo.de/links/Caigos_CheckImport.php?"  
         # 1. Test ob Ebenen gewählt
         view = self.twCaigosLayer
         Liste=[]
@@ -368,7 +369,10 @@ class uiExplorer(QDialog, FORM_CLASS):
                 return
         
         
-
+        try:
+            DownLoadOverQT(chkurl  + fncBrowserID() + "|" + str(myQGIS_VERSION_INT()) + ":" + fncPluginVersion(),EZUTempDir()+'test.zip')
+        except:
+            pass
         super(uiExplorer, self).accept() # Fenster schließen
             
     # Die Zeilen mit ausgewaehlter Checkox ausgeben

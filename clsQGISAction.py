@@ -240,7 +240,7 @@ class clsQGISAction():
             qry4priDBname=qry4pri.value(3)
             try:
                 i=i+1
-                print (i, step, GesAnz, qry4priEbene)
+                #print (i, step, GesAnz, qry4priEbene)
             except:
                 pass
             #Progressbar weiterschalten

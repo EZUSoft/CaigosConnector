@@ -59,8 +59,8 @@ def fncCGFensterTitel(intCG = None):
     if intCG == 0:
         sVersion = "11.2"
     if intCG == 1:        
-        sVersion = "2016"
-    return u"CAIGOS Importer für Version " + sVersion + "   (Programmversion " + fncProgVersion() + ")" 
+        sVersion = "2016-2019"
+    return u"CAIGOS Importer für Version " + sVersion + "   (PlugIn Version " + fncProgVersion() + ")" 
     
 if __name__ == "__main__": 
     print (fncCGFensterTitel())

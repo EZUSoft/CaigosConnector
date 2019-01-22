@@ -2,6 +2,7 @@
 """
 /***************************************************************************
  uiDBAnbindung: Gemeinsame Basis für QGIS2 und QGIS3
+    22.01.2019: cbVersion gleich nach Neuauswahl schreiben
     16.08.2018: CheckVerbindungsdaten komplett überarbeitet
     06.08.2018 
         - Fehler Auswahl dbdesign.cgbin für QGIS 3.x beseitigt
@@ -149,6 +150,10 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             self.leEPSG.setText(row["txtEPSG"])
             
     def cgVersionsWechsel(self):
+        # 22.01.2019: cbVersion gleich nach Neuauswahl schreiben
+        s = QSettings( "EZUSoft", fncProgKennung() )
+        s.setValue( "cgversion", self.cbVersion.currentIndex() )
+        
         self.setWindowTitle (fncCGFensterTitel(self.cbVersion.currentIndex()))
         if self.cbVersion.currentIndex() == 0:
             self.lbProjektOrDB.setText(u"Ausgewählte database.ini")

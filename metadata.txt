@@ -14,8 +14,13 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.8
-changelog=29.10.2018 V0.8:
+version=0.9
+changelog=xx.xx.2019 V0.9:
+        - Freigabe für CAIGOS 2019
+        - Bugfixes (Versionswechel, SVG-Verzeichnis)
+
+         _______________
+         29.10.2018 V0.8:
         - Anpassungen für QGIS 3.4.0
         
          _______________
