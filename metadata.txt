@@ -14,8 +14,8 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.8.2
-changelog=11.04.2019 V0.8.2:
+version=0.8.5
+changelog=11.04.2019 V0.8.5:
         - Fehler bei leerer Fachschale abgefangen
 
          _______________

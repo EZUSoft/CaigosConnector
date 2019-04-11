@@ -2,6 +2,9 @@
 """
 /***************************************************************************
  clsQGISAction: Gemeinsame Basis für QGIS2 und QGIS3
+  11.04.2019 
+  - V0.8.1 leere Fachschale abgefangen
+  - lName nach vorn 
   17.07.2018 V0.6
   - Anpassungen an QGIS 3.2
   09.11.2017 V0.5
@@ -126,9 +129,9 @@ class clsQGISAction():
     
     def ErzeugeStruktur (self, prjNameInTree, qry):
         newparent = True
-        Fachschale = ""
-        Thema = ""
-        Gruppe = ""
+        Fachschale = None
+        Thema = None
+        Gruppe = None
         i=0
         
         # 1.) evetuell vorhandenes Projekt/Projektname (-gruppe) in Root löschen
@@ -258,6 +261,7 @@ class clsQGISAction():
                 LayerMachWas =  not (clsdb.sqlLayerIsEmpty(q    ry4pri.value(2),qry4priLayerID))
             """
             
+            lName=toUTF8(qry4priEbene) # 11.04.19 weiter vorgeholt, falls in Fehlermelung gebraucht
             if bDBTab and qry4priDBname:#
                 if dbExistsGISDBTab(qry4priDBname):
                     GISDBTabName=qry4priDBname.lower()
@@ -268,7 +272,7 @@ class clsQGISAction():
             # 17.07.18: ab hier crasht der Zugriff auf qry4pri.value, deshalb werden die Werte in ein normales array geschrieben
             if vlp:
                 # ================== 1. Schritt Layer einbinden =============================
-                lName=toUTF8(qry4priEbene)
+                
                 #print (vlp)
                 #print (lName)
                 Layer = QgsVectorLayer(vlp, lName , "postgres") 
