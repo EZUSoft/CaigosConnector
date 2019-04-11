@@ -14,8 +14,12 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.8.1
-changelog=22.01.2019 V0.8.1:
+version=0.8.2
+changelog=11.04.2019 V0.8.2:
+        - Fehler bei leerer Fachschale abgefangen
+
+         _______________
+        22.01.2019 V0.8.1:
         - Freigabe für CAIGOS 2019
         - Bugfixes (Versionswechel, SVG-Verzeichnis)
 

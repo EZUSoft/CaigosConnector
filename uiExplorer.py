@@ -2,6 +2,7 @@
 """
 /***************************************************************************
  uiExplorer: Gemeinsame Basis für QGIS2 und QGIS3
+ 11.04.2019 V0.8.1 leere Fachschale abgefangen
  09.10.2017 V0.5
   - Shapeexport optional Darstellung (im Shapeverzeichnis) speichern
   
@@ -296,16 +297,17 @@ class uiExplorer(QDialog, FORM_CLASS):
         tw.clear()
         # Fachschale, Thema, Gruppe, Ebene, layerid
         newparent = True
-        Fachschale = ""
-        Thema = ""
-        Gruppe = ""
+        # 11.04.2019: Fehler bei leerer Fachschale durch Initialisierung mit None abgefangen
+        Fachschale = None
+        Thema = = None
+        Gruppe = = None
         p_item = QTreeWidgetItem(tw)
         p_item.setText(0, rootname)
         p_item.setCheckState(0,Qt.Unchecked)
         p_item.setExpanded(True)
         p_item.setFlags(p_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
-
         while (qry.next()):
+            print (qry.value(0),qry.value(1),qry.value(2),qry.value(3))
             if qry.value(0) != Fachschale:
                 newparent=True
                 f_item = QTreeWidgetItem(p_item)
