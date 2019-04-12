@@ -2,6 +2,7 @@
 """
 /***************************************************************************
  clsRenderingByQML: Gemeinsame Basis für QGIS2 und QGIS3
+  12.04.2019: Leere Variable mit fncNoNone() abgefangen
   22.01.2019: 22.01.2019: Pfadfehler beseitigt (Pfade4Signatur)
   16.08.2018: (anders) auf leeres Signaturverzeichnis bei V2016R3 reagieren
   01.07.2017 V0.4
@@ -864,7 +865,7 @@ class clsRenderingByQML():
                     # kann durchaus normal sein, wenn AD keine Darstellung haben soll
                     # --> Warnung trotzdem vorläufig drin lassen
                     #QgsMessageLog.logMessage(  "Kein Attribut:" + sqlAtt4Massstab(cgEbenenTyp, AktDefID, Group),u'EZUSoft:Fehler' )
-                    addHinweis( LayerID + "/" + rsAttDefs.value(1)+ "/"+AktDefName+"(" + str(cgEbenenTyp) + "): Kein Attribut gefunden")
+                    addHinweis( fncNoNone(LayerID) + "/" + fncNoNone(rsAttDefs.value(1))+ "/"+fncNoNone(AktDefName)+"(" + str(cgEbenenTyp) + "): Kein Attribut gefunden")
                     #break 13.02.18: Abbruch macht hier keinen Sinn, weil dann das gesamte Attribt weg ist
                 
                 # Oberrolle Schreiben
@@ -1006,10 +1007,9 @@ class clsRenderingByQML():
 
     
 if __name__ == "__main__":
-    tempName="d:/tar/r.txt"
-    f = open(tempName, "w",encoding='utf-8')
-    f.write('Umlauteäöüß')
-    f.close()
+    LayerID=None
+    cgEbenenTyp=None
+    AktDefName=None
     #from qgis.utils import *
     #app = QApplication(sys.argv)
     #print (myqtVersion)

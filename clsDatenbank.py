@@ -363,6 +363,7 @@ def dbExistsGISDBTab(GISDBTabName, AktDB = None):
 
     sDB=GISDBTabName.lower()
     sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname = '%s_objid'")%(sDB,sDB)
+    print (sSQL)
     rs=db.OpenRecordset(sSQL)
     Antw=rs.size()==1
     del rs
@@ -600,11 +601,11 @@ def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negat
     return delAnz
     
 if __name__ == "__main__":
-    print (dbLayerStrukturByID('{893F0B09-8BE1-4A14-91A3-EB3AD7D3D784}'))
-    p1="dbname='cgStrassendokumentation' host=10.201.201.21 port=5432 user='CAIGOS' password='CAIGOS'"
-    vlp = VectorLayerPath (5,p1,25833, '{623E894A-9944-4F62-A337-DF713DC42439}',False, 'd4ustdok_qs', 0, True)
-    print (vlp)
-    #print (AktDB.CheckVerbDaten(None,None,None,None, True))
+    s = QSettings( "EZUSoft", fncProgKennung() )
+    print (s)
+    db = pgCurrentDB()
+    print (dbExistsGISDBTab('d4ustdok_vkz',db))
+     #print (AktDB.CheckVerbDaten(None,None,None,None, True))
     #print ("crashtest1")
 
 

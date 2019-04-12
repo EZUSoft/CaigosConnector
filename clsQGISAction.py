@@ -2,6 +2,8 @@
 """
 /***************************************************************************
  clsQGISAction: Gemeinsame Basis für QGIS2 und QGIS3
+  12.04.2019
+  - dbExistsGISDBTab bessere Fehlermeldung
   11.04.2019 
   - V0.8.1 leere Fachschale abgefangen
   - lName nach vorn 
@@ -266,7 +268,7 @@ class clsQGISAction():
                 if dbExistsGISDBTab(qry4priDBname):
                     GISDBTabName=qry4priDBname.lower()
                 else:
-                    addFehler("Fehler Tabellenzugriff (" + qry4priDBname + ") bei: " + lName )
+                    addFehler("Fehler Tabellenzugriff (" + qry4priDBname + "_objid) bei: " + lName )
 
             vlp = VectorLayerPath (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp)
             # 17.07.18: ab hier crasht der Zugriff auf qry4pri.value, deshalb werden die Werte in ein normales array geschrieben

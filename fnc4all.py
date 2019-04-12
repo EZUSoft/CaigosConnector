@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+  12.04.2019: neue Funktion fncNoNone()
   29.10.2018: fncUniDatRead23() und fncUniDatOpen23() definiert 
   01.03.2018: tryDecode an Python3 angepasst
   13.02.2018: fncDebugMode musste hier raus, da in Projektdatei definiert
@@ -264,7 +265,12 @@ def EZUTempClear(All=None):
                 
     return Loe, Feh
     #QMessageBox.critical(None, "Leeren", tmp)
-
+def fncNoNone (wert):
+    if wert==None:
+        return ("#undef#")
+    else:
+        return (wert)
+        
 def EZUTempDir():
     # 28.06.16 Replce() eingefügt, da processing.runalg sehr empfindlich hinsichtlich Dateinamen ist
     tmp=(tempfile.gettempdir()).replace("\\","/") + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/"
