@@ -3,6 +3,7 @@
 /***************************************************************************
  clsQGISAction: Gemeinsame Basis für QGIS2 und QGIS3
   12.04.2019
+  - universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
   - dbExistsGISDBTab bessere Fehlermeldung
   11.04.2019 
   - V0.8.1 leere Fachschale abgefangen
@@ -254,12 +255,13 @@ class clsQGISAction():
                 break
             
             GISDBTabName=None
+            refObjID=None
             
             """
             -> hat irgendwie nix gebracht, war langsam und vor allem hat sich der Speicher irgendwie aufgeschauckelt
             if bLeer:
                 LayerMachWas = True
-            else:
+            else:^
                 LayerMachWas =  not (clsdb.sqlLayerIsEmpty(q    ry4pri.value(2),qry4priLayerID))
             """
             
@@ -267,10 +269,11 @@ class clsQGISAction():
             if bDBTab and qry4priDBname:#
                 if dbExistsGISDBTab(qry4priDBname):
                     GISDBTabName=qry4priDBname.lower()
+                    refObjID=dbObjID4GISDBTab(qry4priDBname)
                 else:
-                    addFehler("Fehler Tabellenzugriff (" + qry4priDBname + "_objid) bei: " + lName )
+                    addFehler("Fehler Tabellenzugriff (Tabelle:" + qry4priDBname + ", Matchcode: like '%%\_objid', Ebene: " + lName )
 
-            vlp = VectorLayerPath (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp)
+            vlp = VectorLayerPath (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp, refObjID)
             # 17.07.18: ab hier crasht der Zugriff auf qry4pri.value, deshalb werden die Werte in ein normales array geschrieben
             if vlp:
                 # ================== 1. Schritt Layer einbinden =============================
@@ -418,7 +421,7 @@ class clsQGISAction():
             msgbox("* " + "\n* ".join(getHinweis())) # 25.10.18 "\n\n" --> "\n* " 
        
 if __name__ == "__main__":
-    ('txtZielPfad').encode('utf8')
+    print ( ("%s %%_ test")%("X"))
     # zur zum lokalen testen 
     #app = QApplication(sys.argv)
     #QgsApplication.initQgis()

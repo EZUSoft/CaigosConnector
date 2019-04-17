@@ -2,6 +2,10 @@
 """
 /***************************************************************************
  clsDatenbank: Gemeinsame Basis für QGIS2 und QGIS3
+  17.04.2019:
+  - like '%%\\\_objid'
+  12.04.2019: 
+  - universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
   30.10.2018 V0.8
   - Fehler abfangen, wenn keine DB-Verbindung definiert
   18.07.2018 V0.6
@@ -341,7 +345,8 @@ def db2sqlGisDBShortFieldName (TabName, AktDB = None):
     rs = db.OpenRecordset("select column_name from information_schema.columns where table_name='" + TabName + "'")
     s = "select "
     while (rs.next()) :
-        if rs.value(0).replace(TabName + '_','') == 'objid':
+        # 12.04.19: universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
+        if rs.value(0)[-6:] == '_objid':
             s = s + rs.value(0) + " as objidgistab," # objid wäre sonnst doppelter Name in Abfrage, da Spalte objid auch in GeoTab
         else:
             s = s + rs.value(0) + " as " + rs.value(0).replace(TabName + '_','') + ","
@@ -362,17 +367,33 @@ def dbExistsGISDBTab(GISDBTabName, AktDB = None):
         db = pgCurrentDB()
 
     sDB=GISDBTabName.lower()
-    sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname = '%s_objid'")%(sDB,sDB)
-    print (sSQL)
+    # 12.04.19: universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
+    sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%\\\_objid'")%(sDB)
     rs=db.OpenRecordset(sSQL)
     Antw=rs.size()==1
     del rs
     if not AktDB: del (db)
     return (Antw) 
 
+def dbObjID4GISDBTab(GISDBTabName, AktDB = None):
+    if AktDB:
+        db=AktDB
+    else:
+        db = pgCurrentDB()
 
+    sDB=GISDBTabName.lower()
+    # 12.04.19: universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
+    sSQL=("SELECT attname FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%\\\_objid'")%(sDB)
+    rs=db.OpenRecordset(sSQL)
+    if rs.size()==1:
+        rs.next()
+        Antw = rs.value(0)
+    del rs
+    if not AktDB: del (db)
+    return (Antw)
 
-def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape):
+def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID):
+    # 12.04.19 neu RefObjID
     bDeltaTexte = True # evtl. später mal optional 
     uri = None
     geoTabName=GeoTabName4Art(Art)
@@ -392,7 +413,7 @@ def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion
             sql4GISDB = db2sqlGisDBShortFieldName(GISDbTab).replace("\\","")
             sqlZusatz = (' left join (%s) as gtab on %s.objid = gtab.objidgistab') % (sql4GISDB,geoTabName)
         else:
-            sqlZusatz = (' left join %s  on %s.objid = %s.%s_objid') % (GISDbTab,geoTabName,GISDbTab,GISDbTab)
+            sqlZusatz = (' left join %s  on %s.objid = %s.%s') % (GISDbTab,geoTabName,GISDbTab,refObjID)
 
     else:
         sqlZusatz=""
@@ -601,12 +622,8 @@ def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negat
     return delAnz
     
 if __name__ == "__main__":
-    s = QSettings( "EZUSoft", fncProgKennung() )
-    print (s)
-    db = pgCurrentDB()
-    print (dbExistsGISDBTab('d4ustdok_vkz',db))
-     #print (AktDB.CheckVerbDaten(None,None,None,None, True))
-    #print ("crashtest1")
+    print (("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%_objid'")%('SCHACHT'))
+
 
 
 

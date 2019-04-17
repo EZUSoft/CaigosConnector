@@ -14,8 +14,15 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.8.6
-changelog=12.04.2019 V0.8.6:
+version=0.8.8
+changelog=17.04.2019 V0.8.9:
+        - Bug mit bei Tabellen mit mehreren *.objid Spalten beseitigt
+
+        12.04.2019 V0.8.8:
+        - Tabellen (aller) Fachschalen koennen angebunden werden
+           
+         _______________
+        12.04.2019 V0.8.6:
         - Fehler bei leerer Fachschale abgefangen
 
          _______________
