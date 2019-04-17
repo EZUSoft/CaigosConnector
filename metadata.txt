@@ -14,7 +14,7 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.8.8
+version=0.8.9
 changelog=17.04.2019 V0.8.9:
         - Bug mit bei Tabellen mit mehreren *.objid Spalten beseitigt
 
