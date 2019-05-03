@@ -2,6 +2,7 @@
 """
 /***************************************************************************
  clsRenderingByQML: Gemeinsame Basis für QGIS2 und QGIS3
+  03.05.2019: Korrekte Umsetzung von gebrochenen Flurstücksnummern
   12.04.2019: Leere Variable mit fncNoNone() abgefangen
   22.01.2019: 22.01.2019: Pfadfehler beseitigt (Pfade4Signatur)
   16.08.2018: (anders) auf leeres Signaturverzeichnis bei V2016R3 reagieren
@@ -670,7 +671,7 @@ def EinenPunktXMLAttributieren (eSymbols, symNum,  rsParam ) :
     
     return eSymbols    
 
-def EinenTextXMLAttributieren (eSettings,rsParam):
+def EinenTextXMLAttributieren (eSettings,rsParam,art='e'):
     # ===============================================================================================================
     # 1. <text-style
     qmap={}   
@@ -691,7 +692,21 @@ def EinenTextXMLAttributieren (eSettings,rsParam):
     qmap['blendMode']='0'
     # Ein "MM" gibt es bei Beschriftung nicht, deshalb in Punkte * 2
     qmap['fontSize']=str(fncfield(rsParam,"sizemm") * ( 1 if fncfield(rsParam,"scrresize") == "J" else 2 ))
-    qmap['fieldName']="replace(replace(\"pstext\",'\\\\u','')  ,'\\\\c','')"   
+    
+    
+    # Text einfach
+    if art == 'e':
+        qmap['fieldName']="replace(replace(\"pstext\",'\\\\u','')  ,'\\\\c','')"   
+
+    # Text für Zähler
+    if art == 'z':
+        qmap['fieldName']="replace(replace(case when regexp_match(\"pstext\",'\\\\\\\\n') then regexp_substr(\"pstext\",'.*\\\\\\\\n') else \"pstext\" end,'\\\\u','')  ,'\\\\c','')"   
+
+    # Text für Nenner
+    if art == 'n':
+        qmap['fieldName']="replace(replace(case when regexp_match(\"pstext\",'\\\\\\\\n') then regexp_substr(\"pstext\",'\\\\\\\\n.*')  end,'\\\\u','')  ,'\\\\c','')"   
+
+    
     s='Normal'
     if fncfield(rsParam,"bold")=="J":
         s="Bold"
@@ -753,8 +768,11 @@ def EinenTextXMLAttributieren (eSettings,rsParam):
     ET.SubElement(eD,"OffsetQuad",qmap)
 
     qmap={} #Unterstreichung aus Geometriedaten
-    qmap['expr']= ("case %swhen strpos(\"pstext\",'\\\\\\\\u') then True%selse False %send") % ( chr(13)+chr(10),chr(13)+chr(10),chr(13)+chr(10))
-    #            "case &amp;#xd;&amp;#xa;when strpos(&amp;quot;pstext&amp;quot;,'/\u') then True&amp;#xd;&amp;#xa;else False &amp;#xd;&amp;#xa;end"
+    # Anpassung 03.05.19
+    #qmap['expr']= ("case %swhen strpos(\"pstext\",'\\\\\\\\u') then True%selse False %send") % ( chr(13)+chr(10),chr(13)+chr(10),chr(13)+chr(10))
+    if art != 'n':
+        qmap['expr']= "regexp_match(\"pstext\",'\\\\\\\\u')"
+    
     qmap['field']=''
     qmap['active']='true'
     qmap['useExpr']='true'
@@ -919,9 +937,15 @@ class clsRenderingByQML():
                         for p in props:
                             ET.SubElement(l1, "prop",k=p,v=props[p])
                         
-                        # Jetzt der Text
+                        # Jetzt der Text bestehend aus Zähler und Nenner
                         eSettings=ET.SubElement(AktRule,"settings")
-                        eSettings = EinenTextXMLAttributieren (eSettings,rsAtt )                      
+                        eSettings = EinenTextXMLAttributieren (eSettings,rsAtt,'z' )
+                        
+                        # Zusatzrolle für Nenner
+                        symNum=symNum+1;qmap["symbol"] = str(symNum);AktRule=ET.SubElement(eORule,"rule",qmap)
+                        
+                        eSettings=ET.SubElement(AktRule,"settings")                        
+                        eSettings = EinenTextXMLAttributieren (eSettings,rsAtt,'n' )                         
  
                     if cgEbenenTyp == 31: # Referenzlinie
                         qTyp = qLayer.geometryType()
