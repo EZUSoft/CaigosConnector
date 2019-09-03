@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-
 /***************************************************************************
- uiAbout: Gemeinsame Basis für QGIS2 und QGIS3
-                                 A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,6 +15,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+
+
+
+
+
 from qgis.utils import os, sys
 try:
     from PyQt5 import QtGui, uic
@@ -48,25 +48,25 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class uiAbout(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
-        """Constructor."""
+
         super(uiAbout, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
+
+
+
+
         self.setupUi(self)
 
         s=self.lblLink.text()
-        s=s.replace("$$Homepage$$","http://www.makobo.de/links/Home_CaigosConnector.php?id=" + fncBrowserID())
-        s=s.replace("$$Daten$$","http://www.makobo.de/links/Daten_CaigosConnector.php?id=" + fncBrowserID())
-        s=s.replace("$$Forum$$","http://www.makobo.de/links/Forum_CaigosConnector.php?id=" + fncBrowserID())
-        s=s.replace("$$Doku$$","http://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + fncBrowserID())
+        s=s.replace("$$Homepage$$","http://www.makobo.de/links/Home_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Daten$$","http://www.makobo.de/links/Daten_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Forum$$","http://www.makobo.de/links/Forum_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Doku$$","http://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
         self.lblLink.setText(s)
   
 if __name__ == "__main__":
-    # zur zum lokalen testen
-    print  (os.path.dirname(__file__))
+
+    printlog  (os.path.dirname(__file__))
 
     app = QApplication(sys.argv)    
     cls=uiAbout()

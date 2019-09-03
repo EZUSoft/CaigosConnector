@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- fnc4sqlite: Gemeinsame Basis für QGIS2 und QGIS3
-                                 A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,6 +15,11 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+
+
+
+
 import sqlite3 as sl
 try:
     from fnc4all import *
@@ -28,17 +28,17 @@ except:
     from .fnc4all import *
     from .fnc4CaigosConnector import *
     
-def slOpenRecordset(dbName,sSQL):
+def EZU32315C76E6A04BD1B46E5CB2DE026E79(dbName,sSQL):
     try:
         con = sl.connect(dbName)
-        con.row_factory = sl.Row #the contents of table using the dictionary cursor
+        con.row_factory = sl.Row 
 
         cur = con.cursor()    
         cur.execute(sSQL)
         return cur.fetchall()
 
     except:
-        subLZF ()
+        EZU2CC2ED60E16A4317BA8BEBE4D6120301 ()
 
     finally:   
         if con:
@@ -48,13 +48,14 @@ if __name__ == "__main__":
        'FROM DBPROJECT '
        'INNER JOIN DBCONNECT ON DBPROJECT.DBPROJECT_IDDBCONNECT = DBCONNECT.DBCONNECT_ID WHERE lower([DBCONNECT_PACTORTYPE])="postgresql";')
     dbName='X:\CAIGOS_HOME\CAIGOS_Server\dbdesign.cgbin'
-    rs = slOpenRecordset(dbName,sSQL)
-    if rs is None:
-        print (getFehler())
-    else:
-        for row in rs:
-            print (row["pgServer"])
-        print ('hier')
+    rs = EZU32315C76E6A04BD1B46E5CB2DE026E79(dbName,sSQL)
+
+
+
+
+
+
+
 
 
 

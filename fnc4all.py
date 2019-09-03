@@ -1,22 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-  12.04.2019: neue Funktion fncNoNone()
-  29.10.2018: fncUniDatRead23() und fncUniDatOpen23() definiert 
-  01.03.2018: tryDecode an Python3 angepasst
-  13.02.2018: fncDebugMode musste hier raus, da in Projektdatei definiert
-  26.01.2018: alle PlugIn's abgeglichen
-
 /***************************************************************************
- fnc4all: Gemeinsame Basis für QGIS2 und QGIS3
-                                 A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -26,13 +15,24 @@
  *                                                                         *
  ***************************************************************************/
 """
-# Einbau in QGIS per
-# >> sys.path.append('C:/Users/.../.qgis3/python/plugins/<plugin-name>')
-# >> sys.path.append('C:/Users/.../AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/GermanyCadastralParcels')
-# >> from fnc4all import *
-# Aktualisierung python 3.x per
-# >> import importlib
-# >> importlib.reload(fnc4all)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 from qgis.core import *
 from qgis.utils import os, sys
@@ -44,7 +44,7 @@ try:
     from PyQt5.QtWidgets import QApplication,QMessageBox
     from configparser import ConfigParser
     
-    def myQGIS_VERSION_INT():
+    def EZUC86841CA58BC4846B265D42D4397141D():
         return Qgis.QGIS_VERSION_INT
     myqtVersion = 5
 
@@ -54,11 +54,11 @@ except:
     from PyQt4.QtGui import QMessageBox,QApplication
     from ConfigParser import ConfigParser
     
-    def myQGIS_VERSION_INT():
+    def EZUC86841CA58BC4846B265D42D4397141D():
         return QGis.QGIS_VERSION_INT
     myqtVersion = 4
 
-# es kommt (verumtlich bei gemischten Installationen) vor, dass QString nicht verfügbar
+
 try:
     from PyQt4.QtCore import QString
 except ImportError:
@@ -74,8 +74,8 @@ import tempfile
 import codecs
 from glob import glob
 
-######################### QGIS TreeNode Handling ################################
-def NodeFindByFullName (FullNode, Start = None):
+
+def EZUA7F0526153984F32B32657FEE7904ECD (FullNode, Start = None):
     if Start is None: Start=QgsProject.instance().layerTreeRoot()
     if type(FullNode) == type([]):
         sNode=FullNode
@@ -86,16 +86,16 @@ def NodeFindByFullName (FullNode, Start = None):
         if str(type(node))  == "<class 'qgis._core.QgsLayerTreeGroup'>":
             if node.name() == sNode[0]:
                 if len(sNode) > 1:
-                    Gefunden = NodeFindByFullName(sNode[1:], node)
+                    Gefunden = EZUA7F0526153984F32B32657FEE7904ECD(sNode[1:], node)
                 else:
                     Gefunden = node
     return Gefunden             
 
 
-def NodeCreateByFullName (FullNode, Start = None):
-    # Rückgabewerte:
-    #   1.) Der Knoten
-    #   2.) Anzahl der neu angelegten Gruppen
+def EZU02B97863D0C3442985D82A8D462A6AE1 (FullNode, Start = None):
+
+
+
     ToDo=0
     if Start is None: Start=QgsProject.instance().layerTreeRoot()
     if type(FullNode) == type([]):
@@ -110,11 +110,11 @@ def NodeCreateByFullName (FullNode, Start = None):
                 break
     if not Found: node=Start.addGroup(sNode[0]);ToDo=ToDo+1
     if len(sNode) > 1:
-        node, ReToDo = NodeCreateByFullName (sNode[1:],node)
+        node, ReToDo = EZU02B97863D0C3442985D82A8D462A6AE1 (sNode[1:],node)
         ToDo=ToDo+ReToDo
     return node, ToDo
 
-def NodeRemoveByFullName (FullNode, Start = None):
+def EZUFF9716E6E37C4D918ABCC8056B2F036E (FullNode, Start = None):
     if Start is None: Start=QgsProject.instance().layerTreeRoot()
     if type(FullNode) == type([]):
         sNode=FullNode
@@ -122,7 +122,7 @@ def NodeRemoveByFullName (FullNode, Start = None):
         sNode=FullNode.split("\t")
     delNodeName=sNode[-1:][0]
     if len(sNode) > 1:
-        parent=NodeFindByFullName (sNode[:-1],Start)
+        parent=EZUA7F0526153984F32B32657FEE7904ECD (sNode[:-1],Start)
     else:
         parent=Start
     if not parent: return False
@@ -131,14 +131,14 @@ def NodeRemoveByFullName (FullNode, Start = None):
             if node.name() == delNodeName:
                 parent.removeChildNode(node)
                 return True
-######################### QGIS TreeNode Handling ################################
 
-def toUnicode(text):
-    # Python2 erzeugt           <type 'unicode'>
-    # Python3 erzeugt (bleibt)  <class 'str'>
-    # QT4 hat Typ QString
-    # https://stackoverflow.com/questions/18404546/set-up-notepad-and-nppexec-to-print-unicode-characters-from-python
-    # für die saube Ausgabe an die (Notepad++ - Console) env_set PYTHONIOENCODING=utf-8
+
+def EZUC936D29251B44D4E994497BF023338C7(text):
+
+
+
+
+
     if myqtVersion == 4 and type(text) == QString:
         return unicode(text)
     if (type(text) == str and sys.version[0] == "2"):
@@ -148,54 +148,55 @@ def toUnicode(text):
     
 glFehlerListe=[]
 glHinweisListe=[]
-def addFehler (Fehler): 
-    glFehlerListe.append (toUnicode(Fehler))
-def getFehler() :
+def EZUC8DCB02F1A8145AF82C8A69A43E0529B (Fehler): 
+    glFehlerListe.append (EZUC936D29251B44D4E994497BF023338C7(Fehler))
+def EZU03F45B01171E465F835613DBEE097689() :
     return glFehlerListe
-def resetFehler() :
+def EZU0BAA4CE0798E48099454390EF2BC83A4() :
     global glFehlerListe
     glFehlerListe = []  
-def addHinweis (Hinweis):
-    glHinweisListe.append (toUnicode(Hinweis))
-def getHinweis2String() :
+def EZU9AC841489FAD40E4B1A1232B3CA9B315 (Hinweis):
+    glHinweisListe.append (EZUC936D29251B44D4E994497BF023338C7(Hinweis))
+def EZUC4078FFEC92741969D3834F8CE89E164() :
     try:
         return u"\n".join(glHinweisListe)
     except:
         return "\n".join(glHinweisListe)
-        #return "Unicode fehler"
-def getHinweis() :
+
+def EZU9D0157F9BB984DE991CEB81C700FA02B() :
     return glHinweisListe
-def resetHinweis() :
+def EZU275D7392321740A3AA8EFCD92E2B011B() :
     global glHinweisListe
     glHinweisListe = [] 
 
-def fncPluginVersion():
+def EZUF9FB4AE0A2B44C8B8313441BFB307407():
     config = ConfigParser()
     config.read(os.path.join(os.path.dirname(__file__),'metadata.txt'))
 
-    #name        = config.get('general', 'name')
-    #description = config.get('general', 'description')
+
+
     return config.get('general', 'version')
     
-# unerwarteter LZF mit Sofortmeldung
-""" Aufruf per:
-except Exception as e:
-    exc_type, exc_obj, exc_tb = sys.exc_info()
-    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    subLZF ("Irgendwas")
-"""
-def subLZF(Sonstiges = None):
-    #http://stackoverflow.com/questions/1278705/python-when-i-catch-an-exception-how-do-i-get-the-type-file-and-line-number
+
+
+
+
+
+
+
+def EZU2CC2ED60E16A4317BA8BEBE4D6120301(Sonstiges = None):
+
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     tb_lineno=exc_tb.tb_lineno
     try:
         QgsMessageLog.logMessage( traceback.format_exc().replace("\n",chr(9))+ (chr(9) + Sonstiges if Sonstiges else ""), u'EZUSoft:Error' )
     except:
+
         pass
-#    if fncDebugMode():
-#        QMessageBox.critical( None,tr("PlugIn Error") ,str(exc_type) + ": \nDatei: " + fname + "\nZeile: "+ str(tb_lineno) + ("\n" + Sonstiges if Sonstiges else ""))
-    addFehler ("LZF:" + traceback.format_exc().replace("\n",chr(9)) + (chr(9) + Sonstiges if Sonstiges else ""))    
+
+
+    EZUC8DCB02F1A8145AF82C8A69A43E0529B ("LZF:" + traceback.format_exc().replace("\n",chr(9)) + (chr(9) + Sonstiges if Sonstiges else ""))    
 
 def cut4view (fulltext,zeichen=1500,zeilen=15,anhang='\n\n                  ............. and many more .........\n'):
     cut = False
@@ -213,38 +214,41 @@ def cut4view (fulltext,zeichen=1500,zeilen=15,anhang='\n\n                  ....
     return ctext
  
 def errbox (text,p=None):
-    su= toUnicode(text)
+    su= EZUC936D29251B44D4E994497BF023338C7(text)
 
     QMessageBox.critical(None, "PlugIn Error", cut4view(su))
     try:
         QgsMessageLog.logMessage( su, u'EZUSoft:Error' )
     except:
+
         pass
 
 
 def msgbox (text):
-    su= toUnicode(text)
+    su= EZUC936D29251B44D4E994497BF023338C7(text)
 
     QMessageBox.information(None, "PlugIn Hinweis", cut4view(su))
     try:
         QgsMessageLog.logMessage( su, u'EZUSoft:Hinweise' )
     except:
+
         pass
 
 def errlog(text, DebugMode = False):
-    su= toUnicode(text)   
+    su= EZUC936D29251B44D4E994497BF023338C7(text)   
     if DebugMode:
         QMessageBox.information(None, "DEBUG:", su)
     
     try:
         QgsMessageLog.logMessage( su, u'EZUSoft:Fehler' )
     except:
+
         pass
 
-def EZUTempClear(All=None):
+def EZU7134CD8D717449148C4836EBEB211A29(All=None):
     Feh=0
     Loe=0
-    tmp=EZUTempDir()
+    tmp=EZUE2CC6C01835941909C82368EAB1CE1E2()
     if All:
         for dat in glob(tmp +'*.*'):
             try:
@@ -264,15 +268,15 @@ def EZUTempClear(All=None):
                 Feh+=1
                 
     return Loe, Feh
-    #QMessageBox.critical(None, "Leeren", tmp)
-def fncNoNone (wert):
+
+def EZU1FCD98CB63A64E32A30A1F171BE370F3 (wert):
     if wert==None:
         return ("#undef#")
     else:
         return (wert)
         
-def EZUTempDir():
-    # 28.06.16 Replce() eingefügt, da processing.runalg sehr empfindlich hinsichtlich Dateinamen ist
+def EZUE2CC6C01835941909C82368EAB1CE1E2():
+
     tmp=(tempfile.gettempdir()).replace("\\","/") + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/"
     if not os.path.exists(tmp):
         os.makedirs(tmp) 
@@ -284,30 +288,30 @@ def EZUTempDir():
 
 def debuglog(text,DebugMode=False):
     if DebugMode:
-        su= toUnicode(text)   
+        su= EZUC936D29251B44D4E994497BF023338C7(text)   
         try:
             QgsMessageLog.logMessage( su, 'EZUSoft:Debug' )
         except:
             pass
 
 def hinweislog(text,p=None):
-        su= toUnicode(text)   
+        su= EZUC936D29251B44D4E994497BF023338C7(text)   
         try:
             QgsMessageLog.logMessage( su, 'AXF2Shape:Comments' )
         except:
             pass
     
 def printlog(text,p=None):
-    su= toUnicode(text)        
+    su= EZUC936D29251B44D4E994497BF023338C7(text)        
     try:
-        print (su)
+        print ("log1",su)
     except:
         try:
-            print (su.encode("utf-8"))
+            print ("log2",su.encode("utf-8"))
         except:
-            print (tr("printlog:Tip can not view"))
+            print ("log3",tr("printlog:Tip can not view"))
 
-def fncKorrDateiName (OrgName,Ersatz="_"):
+def EZUF0AF6D30C6EB4BE8A558B27DA05DBD21 (OrgName,Ersatz="_"):
     NeuTex=""
     for i in range(len(OrgName)):
         if re.search("[/\\\[\]:*?|!=]",OrgName[i]):
@@ -316,17 +320,17 @@ def fncKorrDateiName (OrgName,Ersatz="_"):
             NeuTex=NeuTex+OrgName[i]
     return NeuTex      
     
-def fncDateCode():
+def EZUD387D432776647B8BC2C8B379B01E3C1():
     lt = time.localtime()
     return ("%02i%02i%02i") % (lt[0:3])  
 
-def fncXOR(message, key=None):
+def EZU6F6315D895BC410ABCE5C02C6E0C5F14(message, key=None):
     if key==None:
-        key=fncDateCode()
+        key=EZUD387D432776647B8BC2C8B379B01E3C1()
     return  ''.join(("%0.1X" % (ord(c)^ord(k))).zfill(2) for c,k in zip(message, cycle(key)))
 
 
-def ifAscii(uText):
+def EZUEAA9C2F7A165491B918953D7518D8009(uText):
     try:
         for char in uText:
             if(ord(char))> 128:
@@ -335,15 +339,15 @@ def ifAscii(uText):
     except:
         return False 
     
-def toUTF8(uText):
-    # 06.10.2016:
-    # Diese Funktion ist die Lösung für ein ganz übles Problem
-    # Beim Auslesen der PG-Datenbank kommt es zufällig und nicht wiederholbar zu Problemen mit Umlauten (UniCode)
-    # Aus unersichtlichen Gründen wird manchmal kein Ansiwert sondern UTF-8 übergeben
-    # z.B: STPL-F_FussgÃ¤ngerzone, STPL-T_StraÃenbahnLinie,STPL-T_FÃ¶rderschule50000
-    #
-    # da hier bei der Ausgabe auch die jeweilige Console eine Rolle spielt, konnte die Ursache 
-    # nicht gefunden werden
+def EZU9A25B96EF34E432F8B39C40EA0D860A6(uText):
+
+
+
+
+
+
+
+
     try:
         a=""
         for char in uText:
@@ -352,7 +356,7 @@ def toUTF8(uText):
     except:
         return uText    
         
-def tryDecode(txt,sCharset):
+def EZUEAEC23599FD84BC88D09503D1DC0F1D2(txt,sCharset):
     if myqtVersion == 5: 
         try:
             return str(bytes(txt,"utf8").decode(sCharset) )
@@ -364,7 +368,7 @@ def tryDecode(txt,sCharset):
     except:
         return '#decodeerror4#'    
 
-def ClearDir(Verz):
+def EZU0937D041C39145ACBD91A5117C5C6F09(Verz):
     for dat in glob(Verz +'*.*'):
         try:
             os.remove(dat)
@@ -372,30 +376,30 @@ def ClearDir(Verz):
             return False
     return True
     
-def fncMakeDatName (OrgName):
+def EZUE7D17250C3C7421C9D8813540A672DFC (OrgName):
     v=OrgName.replace("\\","/")
     return v.replace("//","/")
 
-def qXDatAbsolute2Relativ(tmpDat, qlrDat, PathAbsolute):
-        # Absolute Pfade eine QRL/QGS in relative umschreiben
-        # bei Layern sucht zwar QGIS automatisch relativ wenn absolute fehlt, bei svg allerdings nicht
-        subPath=fncMakeDatName(PathAbsolute + "/") # encode('ascii') 4 Phython3
+def EZUAC460E6F0D4B49ABBAC60E8D53FD6A34(tmpDat, qlrDat, PathAbsolute):
+
+
+        subPath=EZUE7D17250C3C7421C9D8813540A672DFC(PathAbsolute + "/") 
         iDatNum = open(tmpDat)
         oDatNum = open(qlrDat,"w")
         for iZeile in iDatNum:
-            s1=iZeile.replace('source="' + subPath,'source="./') # Datenquellen
-            s1=s1.replace('k="name" v="' + subPath,'k="name" v="./') # svg-Dateien
-            s1=s1.replace('<datasource>' + subPath,'<datasource>./') # Datenquellen
+            s1=iZeile.replace('source="' + subPath,'source="./') 
+            s1=s1.replace('k="name" v="' + subPath,'k="name" v="./') 
+            s1=s1.replace('<datasource>' + subPath,'<datasource>./') 
             oDatNum.write(s1)
         iDatNum.close()
         oDatNum.close()
         os.remove(tmpDat)
 
-def fncUniDatReadAll23(DatName,sEncode):
-    # universale Funktion um Dateiinhalt in Array zu schreiben
-    # - öffnet und schließt die Datei (besser als csvArray=open(qCsvDat, "r", encoding='utf-8').readlines())
-    # - erzwingt für Python 3 das Encoding
-    # - ignoriert für Python 2 das Encoding
+def EZU94C6C3886ADC4AC4818CDC56A88AEC89(DatName,sEncode):
+
+
+
+
     if myqtVersion == 5:
         tmp = open(DatName, "r", encoding=sEncode)
     else:
@@ -404,11 +408,11 @@ def fncUniDatReadAll23(DatName,sEncode):
     tmp.close()
     return tmpArray
 
-def subUniDatWriteAll23(DatName, Art, zArray,sEncode):
-    # universale Funktion um Array in Datei zu schreiben
-    # - öffnet und schließt die Datei (besser als csvArray=open(qCsvDat, "r", encoding='utf-8').readlines())
-    # - erzwingt für Python 3 das Encoding
-    # - ignoriert für Python 2 das Encoding
+def EZU71B6BE8C89A64C1E952E8EBE887EF2FF(DatName, Art, zArray,sEncode):
+
+
+
+
     if myqtVersion == 5:
         tmp = open(DatName, Art, encoding=sEncode)
     else:
@@ -416,7 +420,7 @@ def subUniDatWriteAll23(DatName, Art, zArray,sEncode):
     tmp.writelines(zArray)
     tmp.close()
     
-def fncUniDatOpen23 (DatName, Art, sEncode):
+def EZUA4368C0FEFDC4FC1977350D9EDFD8729 (DatName, Art, sEncode):
     if myqtVersion == 5:
         tmp = open(DatName, Art, encoding=sEncode)
     else:
@@ -425,19 +429,19 @@ def fncUniDatOpen23 (DatName, Art, sEncode):
         
 if __name__ == "__main__": 
      
-    #if len(getFehler()) > 0:
-    #    print("\n\n".join(getFehler()))  
-    #tmpDat="X:/Downloaddienst/FnP/FnP-2.Entwurf.qlr"
-    #qlrDat="D:/tar/2.qlr"
-    #s="D:/Downloaddienst/FnP/"
-    #qXDatAbsolute2Relativ (tmpDat,qlrDat,s)
-    #app = QApplication(sys.argv)
-    #msgbox (u"Es wurden keine Ebenen zur Darstellung  ausgewählt")
-    #app = QApplication(sys.argv)
-    #if myQGIS_VERSION_INT ()  < 21200:
-    #    print (myQGIS_VERSION_INT())    
-    #print (fncBrowserID())
-    addHinweis("xhgxhgfhgi h         hhhhhhhhhhhhhhhhhhhh hhhhhhhhhhhhhh uiuq")
+
+
+
+
+
+
+
+
+
+
+
+
+    EZU9AC841489FAD40E4B1A1232B3CA9B315("xhgxhgfhgi h         hhhhhhhhhhhhhhhhhhhh hhhhhhhhhhhhhh uiuq")
     import sys
     app = QApplication(sys.argv)
-    msgbox(cut4view("\n".join(getHinweis())))
+    msgbox(cut4view("\n".join(EZU9D0157F9BB984DE991CEB81C700FA02B())))

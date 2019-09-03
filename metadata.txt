@@ -14,8 +14,13 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.9.0
-changelog=03.05.2019 V0.9.0:
+version=0.9.1
+changelog=03.09.2019 V0.9.1:
+        - Korrektur bei Ausgabe wichtige Geometriefeldefelder
+	- doppelte Feldname GISDB/Geodaten verhindern
+        - keine projektspezifischen Unterverzeichnisse fue C2019 - Caigos kennt nur noch PUB:
+
+        03.05.2019 V0.9.0:
         - korrekte Darstellung der Flurstuecksnummern mit Bruchstrich
 
         17.04.2019 V0.8.9:

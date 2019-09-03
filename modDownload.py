@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- modDownload
-
-                                 A QGIS plugin
- Download Flurstücke Sachsen und Thüringen, Darstellung in QGIS und Konvertierung nach DXF
-                             -------------------
-        begin                : 2017-08-08
-        git sha              : $Format:%H$
-        copyright            : (C) 2017 by Mike Blechschmidt EZUSoft 
-        email                : qgis@makobo.de
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
+        email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,51 +15,73 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+
+
+
+
+
+mystat = 'down'
+import sys
+from qgis.utils import iface
 try:
-    from PyQt4.QtGui import QApplication
-    from PyQt4.QtCore import QUrl, QEventLoop, QTimer
-    from PyQt4.QtNetwork import QNetworkRequest
-    from qgis.core import QgsNetworkAccessManager
+    from PyQt4.QtGui import QApplication,QMessageBox
+    from PyQt4.QtCore import QUrl, QEventLoop, QTimer,Qt
+
+
+    from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+
     myqtVersion = 4
 
 except:
-    from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtCore import QUrl, QEventLoop, QTimer
+    from PyQt5.QtWidgets import QApplication,QMessageBox
+    from PyQt5.QtCore import QUrl, QEventLoop, QTimer,Qt
     from PyQt5.QtNetwork import QNetworkRequest
     from qgis.core import QgsNetworkAccessManager
     myqtVersion = 5
 
-
+try:
+    from fnc4all import *
+    from fnc4CaigosConnector import *
+except:
+    from .fnc4all import *   
+    from .fnc4CaigosConnector import *
 
 from os import path, remove
     
-def DownLoadOverQT (dlURL, LokFileName):
-# QGIS3:  funktioniert unter QGIS 3.x recht zuverlässig auch auf "eingeschränktem Rechner"
-# - nutzt die Proxyeinstellungen von QGIS
-# - funktioniert in QGIS selbst auch über HTTPS (es wird durch QGIS eiun Abfragefenster geöffnet)
-# - bei extrem großen Dateien (z.B. 500MBYte) crasht es bei ReadAll()
+def EZUC8D59B20568948389B1274373D8E0990 (EZU4A245AA773D54F9EB8FE4C76EEB8A78E, LokFileName):
 
 
-# QGIS2:  funktioniert unter QGIS 2.x innerhalb von QGIS aktuell recht zuverlässig auch auf "eingeschränktem Rechner"
-#         außerhalb hängt sich der Code auf "eingeschräktem Rechner" auf und bringt dann auch kein Ergebnis
-#         Normalrechner funktioniert es 
-    def WriteFile(LokFileName, content):
-            # 1. Ziel löschen, wenn existent
+
+
+
+
+
+
+
+    def EZU8AF930C5B9174FD197C62D72B02373C6(LokFileName, content):
+
             if path.exists(LokFileName):
                 remove (LokFileName)
             out=open(LokFileName,'wb')
             out.write(content)
             out.close()
+            global mystat
+            mystat=content[0:50]
 
     def onfinish():
-        WriteFile(LokFileName,reply.readAll());
+        EZU8AF930C5B9174FD197C62D72B02373C6(LokFileName,reply.readAll());
         loop.quit()
 
 
-    # 2. Download
+
     request = QNetworkRequest()
-    request.setUrl(QUrl(dlURL))
-    manager = QgsNetworkAccessManager.instance()
+    request.setUrl(QUrl(EZU4A245AA773D54F9EB8FE4C76EEB8A78E))
+    
+    if (myqtVersion == 5):
+        manager = QgsNetworkAccessManager.instance() 
+    else:
+        manager = QNetworkAccessManager()
     
     reply = manager.get(request)
     reply.setParent(None)
@@ -74,13 +90,17 @@ def DownLoadOverQT (dlURL, LokFileName):
     reply.finished.connect(onfinish)  
     loop.exec_() 
     
-    # Wiederholung bei redirekt (13.08.18 Thüringen leitet an HTTPS weiter)
+
     status=reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
     if (status==301):
+
         redirectUrl = reply.attribute(request.RedirectionTargetAttribute)
         request = QNetworkRequest()
         request.setUrl(redirectUrl)
-        manager = QgsNetworkAccessManager.instance()
+        if (myqtVersion == 5):
+            manager = QgsNetworkAccessManager.instance() 
+        else:
+            manager = QNetworkAccessManager()
         
         reply = manager.get(request)
         reply.setParent(None)
@@ -92,26 +112,73 @@ def DownLoadOverQT (dlURL, LokFileName):
     
     
     if path.exists(LokFileName):
-        return path.getsize(LokFileName), reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+        return path.getsize(LokFileName), reply.attribute(QNetworkRequest.HttpStatusCodeAttribute),mystat
     else:
         return None, reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
     reply.deleteLater()
     
 
-
-
+def EZU39041CAE6C224B57B5E3F261A44FA369 (EZU4A245AA773D54F9EB8FE4C76EEB8A78E):
+    def onfinish():
+        iface.messageBar().clearWidgets()
+        onfinish.ret=reply.readAll()
+        loop.quit()
     
-if __name__ == "__main__":
-    import sys
-    app = QApplication(sys.argv)
-    print ("========== QT" + str(myqtVersion) + " ===========")
-    #http://geodownload.sachsen.de/inspire/cp_atom/sn_shape/sn_cp.zip
-    #http://www.makobo.de/data/expTH.dat.zip    
-    #http://geoportal5.geoportal-th.de/ALKIS/Shape/ALKIS_5506-001_shp.zip
-    #print(DownLoadOverQT ("http://www.makobo.de/data/expTH.dat.zip","d:/tar/expTH_qt" + str(myqtVersion) + ".zip"))
+    def EZU4A245AA773D54F9EB8FE4C76EEB8A78E():
+        import platform
+        fncBrowserId=platform.platform()
+        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
+        return chkurl + EZU11DE7CED39F2439E803B738E6E678716() + "|" + str(EZUC86841CA58BC4846B265D42D4397141D()) + ":" + EZUF9FB4AE0A2B44C8B8313441BFB307407()
+    
+    def EZUC39342A9E225496F8A7D38CB18529D36():
+        EZUC39342A9E225496F8A7D38CB18529D36.time_to_wait += 10
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Intitialisierung", "Teste Internetverbindung ....TimeOut " + str(EZUC39342A9E225496F8A7D38CB18529D36.time_to_wait) + '%')
+        if EZUC39342A9E225496F8A7D38CB18529D36.time_to_wait==110:
+            timer.stop()
+            loop.quit()
 
-    print(DownLoadOverQT ("http://geoportal5.geoportal-th.de/ALKIS/Shape/ALKIS_5506-001_shp.zip","d:/tar/ALKIS_5506-001_shp_qt" + str(myqtVersion) + ".zip"))
+    def EZUD4F3B36B8D934F04A94F67750C65AF08(self, event):
+        self.timer.stop()
+        event.accept()    
+        
 
-    #DownLoadOverQT ("http://geodownload.sachsen.de/inspire/cp_atom/sn_shape/sn_cp.zip","d:/tar/sn_cp_qt" + qtversion + ".zip")
-    #print ("Fertig2")
+    EZUC39342A9E225496F8A7D38CB18529D36.time_to_wait = 0
+    onfinish.ret=''
+    iface.messageBar().pushMessage("Intitialisierung", "Teste Internetverbindung ....")
+    QApplication.setOverrideCursor(Qt.WaitCursor)
+    request = QNetworkRequest()
+    request.setUrl(QUrl(EZU4A245AA773D54F9EB8FE4C76EEB8A78E()))
+    if (myqtVersion == 5):
+        manager = QgsNetworkAccessManager.instance() 
+    else:
+        manager = QNetworkAccessManager()
+    
+    reply = manager.get(request)
+    reply.setParent(None)
+    
+    loop = QEventLoop()
+    timer = QTimer()
+    timer.setInterval(500)
+    timer.timeout.connect(EZUC39342A9E225496F8A7D38CB18529D36)
+    timer.start()
+    reply.finished.connect(onfinish) 
+    loop.exec_()
+
+    if (timer.isActive()):
+        timer.stop()
+
+    iface.messageBar().clearWidgets()
+    QApplication.restoreOverrideCursor()
+
+
+
+
+    return reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)==200,onfinish.ret
+
+
+if __name__ == '__main__':
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+    s.setValue("status",'')
+    pass
     

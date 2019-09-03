@@ -1,24 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- clsCaigosConnector: Gemeinsame Basis für QGIS2 und QGIS3
-  01.07.2017 V0.4
-  - CheckVerbDaten umgebaut
-  
- 31.08.16
-  - Shapeexport integriert
- 
- 17.06.2016 V0.2
-  - Darstellungsgruppe eingebaut
-                                 A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -28,6 +15,19 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+
+
+
+
+
+
+
+
+
+
+
+
 from qgis.core import *
 from qgis.gui import *
 from qgis.utils import *
@@ -73,6 +73,7 @@ except:
 
 
 
+
 import webbrowser
 import os
 import getpass
@@ -80,61 +81,64 @@ import getpass
       
 
 class clsCaigosConnector:
-    """QGIS Plugin Implementation."""
+
     
     def __init__(self, iface):
-        """Constructor.
 
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
-        # Save reference to the QGIS interface
+
+
+
+
+
+
+
         self.iface = iface
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
-        """
-        # =====================================================================================================================
-        # Übersetzung macht wenig Sinn, das CAIGOS selbst nur auf deutsch existiert und somit  keine fremdsprachigen Nutzer hat
-        # =====================================================================================================================
-        # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'clsCaigosConnector_{}.qm'.format(locale))
-        if os.path.exists(locale_path):
-            self.translator = QTranslator()
-            self.translator.load(locale_path)
+        userO=getpass.getuser()
+        sysO='USERDOMAIN'
 
-            if qVersion() > '4.3.3':
-                QCoreApplication.installTranslator(self.translator)
-        """
+        self.plugin_dir = os.path.dirname(__file__)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
 
-        # Declare instance attributes
+
+        user0="QGIS"
+        sys0="SYSTEM"
         self.actions = []
         self.menu = self.tr(u'&CAIGOS Datenprovider')
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        s.setValue( "–id–", fncXOR( str(getpass.getuser()) + '|' + str(os.getenv('USERDOMAIN')) ))
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+        s.setValue( "–id–", EZU6F6315D895BC410ABCE5C02C6E0C5F14( str(userO) + '|' + str(os.getenv(sysO)) ))
+        s.setValue( "status", "")
 
 
-
-    # noinspection PyMethodMayBeStatic
     def tr(self, message):
-        """Get the translation for a string using Qt translation API.
 
-        We implement this ourselves since we do not inherit QObject.
 
-        :param message: String for translation.
-        :type message: str, QString
 
-        :returns: Translated version of message.
-        :rtype: QString
-        """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+
+
+
+
+
+
+
+
         return QCoreApplication.translate('clsCaigosConnector', message)
 
 
@@ -172,92 +176,92 @@ class clsCaigosConnector:
         return action
 
     def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
+
 
         icon_path = ':/plugins/CaigosConnector/m_icon.png'
         
         self.add_action(
             icon_path,
             text=self.tr(u'CAIGOS PostGIS Layer einbinden'),
-            callback=self.LayerEinlesen,
+            callback=self.EZU4B07243EE7524760AD9AFF93D330E846,
             parent=self.iface.mainWindow())
         self.add_action(
             icon_path,
             text=self.tr(u'CAIGOS PostGIS Datenbankverbindung anpassen'),
-            callback=self.SetzeDBAnbindung,
+            callback=self.EZU54AB60ED8F1742F0AB1ED9921AEF0FEB,
             parent=self.iface.mainWindow())
 
         self.add_action(
             icon_path,
             text=self.tr(u'Onlinedokumentation'),
-            callback=self.HilfeAnzeige,
+            callback=self.EZU700DA696BF2940D5A93583D248106E9E,
             parent=self.iface.mainWindow())
         
         self.add_action(
             icon_path,
             text=self.tr(u'Über das Programm'),
-            callback=self.About,
+            callback=self.EZU8BD78EB47C554BA49C0622728DB4FA30,
             parent=self.iface.mainWindow())
             
     def unload(self):
-        """Removes the plugin menu item and icon from QGIS GUI."""
+
         for action in self.actions:
             self.iface.removePluginDatabaseMenu(
                 self.tr(u'&CAIGOS Datenprovider'),
                 action)
          
-        # -- keine Toolbar benötigt ---
-        # self.iface.removeToolBarIcon(action)
-        # remove the toolbar
-        # del self.toolbar
+
+
+
+
 
         
-    def About(self): 
-        # About-Fenster wird modal geöffnet
+    def EZU8BD78EB47C554BA49C0622728DB4FA30(self): 
+
         cls=uiAbout()
         cls.exec_()
     
-    def HilfeAnzeige(self): 
-        # Link öffnen
-        webbrowser.open_new_tab("http://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + fncBrowserID())
+    def EZU700DA696BF2940D5A93583D248106E9E(self): 
 
-    def LayerEinlesen(self):
-        resetFehler()
-        resetHinweis()
+        webbrowser.open_new_tab("http://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+
+    def EZU4B07243EE7524760AD9AFF93D330E846(self):
+        EZU0BAA4CE0798E48099454390EF2BC83A4()
+        EZU275D7392321740A3AA8EFCD92E2B011B()
         User = '000'
         db=pgCurrentDB()
-        if not db.CheckVerbDaten(None,None,None,None, None, True):
+        if not db.EZU8011F18E65644E5D9231765F31D7EE19(None,None,None,None, None, True):
             db=None  
         
         cls=uiExplorer()
         
         if db :
-            qry = db.OpenRecordset(sqlStrukAlleLayer()) 
-            projekt=GetCGProjektName()
-            guiListe, bGenDar, bPrjNeu, iGruppe, b3DDar, bDBTab, bSHPexp, bLeer = cls.LayerErmitteln(projekt, qry)
+            qry = db.EZUDCF0989FCCB948B08C56317AE7037619(EZU97DD9229963D4C40BC10157CE31052F0()) 
+            projekt=EZU0239CDC0875B4C7B837227F9004BC5D0()
+            guiListe, bGenDar, bPrjNeu, iGruppe, b3DDar, bDBTab, bSHPexp, bLeer = cls.EZU3B1BBFAC47624AEF82118DE7647883DE(projekt, qry)
             if guiListe:
                 InStr = "','".join(guiListe)
                 InStr = "'" + InStr + "'"
-                # QMessageBox.information( None,'Datenbankzugriff',InStr) 
-                qry = db.OpenRecordset(sqlStrukAlleLayer(InStr,'DESC'))
 
-                pri_gisdb = db.OpenRecordset(sqlAlleLayerByPriAndGISDB(User,InStr))
+                qry = db.EZUDCF0989FCCB948B08C56317AE7037619(EZU97DD9229963D4C40BC10157CE31052F0(InStr,'DESC'))
+
+                pri_gisdb = db.EZUDCF0989FCCB948B08C56317AE7037619(EZU8738A84187454718A9979A2226387046(User,InStr))
 
                 c = clsQGISAction()
-                c.QGISBaum(db,User,projekt,pri_gisdb,qry, bGenDar, bPrjNeu,iGruppe, b3DDar, bDBTab, bSHPexp, bLeer)
+                c.EZU9569D8F0E36C44ACB766DB0A73364BC3(db,User,projekt,pri_gisdb,qry, bGenDar, bPrjNeu,iGruppe, b3DDar, bDBTab, bSHPexp, bLeer)
 
 
         else:          
             reply = QMessageBox.question(None, 'Fehler beim Datenbankanbindung',"Soll der Dialog \n'CAIGOS PostGIS Datenbankverbindung anpassen'\naufgerufen werden", QMessageBox.Yes |  QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
-                self.SetzeDBAnbindung()
+                self.EZU54AB60ED8F1742F0AB1ED9921AEF0FEB()
 
 
     
-    def SetzeDBAnbindung(self):
+    def EZU54AB60ED8F1742F0AB1ED9921AEF0FEB(self):
         cls=uiDBAnbindung()
         cls.exec_()    
   
   
 if __name__ == "__main__":
-    print("------------------- durch ---------------------------------------")
+    dummy=1

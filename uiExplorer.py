@@ -1,27 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- uiExplorer: Gemeinsame Basis für QGIS2 und QGIS3
- 11.04.2019 V0.8.1 leere Fachschale abgefangen
- 09.10.2017 V0.5
-  - Shapeexport optional Darstellung (im Shapeverzeichnis) speichern
-  
- 09.09.2016 V0.3
-  - Leere Ebenen optional einlesen
-  - SHP Export integriert
-  - optionale 3D Übergabe eingebaut
-  
- 17.06.2016 V0.2
-  - Darstellungsgruppe eingebaut
-                                 A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,6 +15,22 @@
  *                                                                         *
  ***************************************************************************/
 """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from qgis.utils import os, sys
 try:
     from PyQt5.QtCore import QSettings
@@ -46,11 +46,11 @@ except:
 try:
     from fnc4all import *
     from fnc4CaigosConnector import *
-    from modDownload import DownLoadOverQT
+    from modDownload import *
 except:
     from .fnc4all import *   
     from .fnc4CaigosConnector import *
-    from .modDownload import DownLoadOverQT
+    from .modDownload import *
 
 
 
@@ -155,24 +155,25 @@ class uiExplorer(QDialog, FORM_CLASS):
      "utf_8",
      "utf_8_sig"]
     def __init__(self,  parent=None):
-        """Constructor."""
+
         super(uiExplorer, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+
+
+
+
+
         self.setupUi(self)
         btn = self.button_box.button(QDialogButtonBox.Apply)
-        btn.clicked.connect(self.Anwenden)
-        self.browseZielPfad.clicked.connect(self.browseZielPfad_clicked)
-        self.cmdReset.clicked.connect(self.cmdReset_clicked)         
-        self.chkSHPexp.clicked.connect(self.Enabled4Options)  
-        self.chkGISDB.clicked.connect(self.Enabled4Options)      
-        self.setWindowTitle (fncCGFensterTitel())
+        btn.clicked.connect(self.EZU866EA2C310114D5CA9F718FEC89F651F)
+        self.browseZielPfad.clicked.connect(self.EZU09753DE7B19B413CA8594D73CE7D6074)
+        self.cmdReset.clicked.connect(self.EZU5B07B73B000A446CBEFCD87EF2D82514)         
+        self.chkSHPexp.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)  
+        self.chkGISDB.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)      
 
-        s = QSettings( "EZUSoft", fncProgKennung() )
-        
+        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
+        self.EZU1C9648848F904099A178AD545D77A882()
+
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         bGenDar = True  if s.value( "bGenDar", "Ja" )   == "Ja"   else False
         bPrjNeu = True  if s.value( "bPrjNeu", "Ja" )   == "Ja"   else False
         bLeer = False   if s.value( "bLeer", "Nein" )   == "Nein" else True
@@ -184,14 +185,14 @@ class uiExplorer(QDialog, FORM_CLASS):
         bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
         chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"   
         iCodePage=s.value( "iCodePage", 0)
-        # 25.10.16 Zeile war deaktiviert, warum!?
+
         self.txtZielPfad.setText(s.value( "txtSHPDir", "" ))
         
         self.cbCharSet.addItems(self.charsetList)
         self.cbCharSet.setCurrentIndex(int(iCodePage))
         
         iGruppe=s.value( "iDarGruppe", 0 )
-        #errlog("gelesen"+str(iGruppe))
+
         self.chkDar.setChecked(bGenDar)
         self.chkGISDB.setChecked(bDBTab)
         self.chkLeer.setChecked(bLeer)
@@ -203,30 +204,36 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.chkOnlyDarField.setChecked(bOnlyDarField)
         self.chkNoGISDBIntern.setChecked(bNoGISDBIntern)
         
-        self.Enabled4Options()
+        self.EZU663B59541A9B4AC1B23819C4A6E3E89B()
         
         if bPrjNeu:
             self.rBNeu.setChecked(True)
         else:
             self.rBHinz.setChecked(True)
-        try:
-            DownLoadOverQT(chkurl  + fncBrowserID() + "|" + str(myQGIS_VERSION_INT()) + ":" + fncPluginVersion(),EZUTempDir()+'test.zip')
-        except:
-            pass
-        # Aktuell nur Neuaufbau unterstützt
+
+        
+
         self.rBNeu.setChecked(True)
         self.grpBoxProjDat.setEnabled (False)
         
-        # Gruppenauswahl
+
         for g in range(5): 
             self.cbGruppe.addItem("Gruppe-" + str(g))
         self.cbGruppe.setCurrentIndex(iGruppe)
-
     
-    def Enabled4Options(self):
+    def EZU1C9648848F904099A178AD545D77A882(self):
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+        if (s.value( "status","")==""):
+            ret=EZU39041CAE6C224B57B5E3F261A44FA369("http://www.makobo.de/")
+            s.setValue("status",ret[0])
+            if ret[0]:
+                s.setValue("status",ret[1])
+        self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61())               
+    def EZU663B59541A9B4AC1B23819C4A6E3E89B(self):
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         bGenSHP = self.chkSHPexp.isChecked() 
         bDBTab  = self.chkGISDB.isChecked()
-        #self.txtZielPfad.setEnabled(bGenSHP)      
+
         self.browseZielPfad.setEnabled(bGenSHP) 
         self.cbCharSet.setEnabled(bGenSHP) 
         self.lbCharSet.setEnabled(bGenSHP) 
@@ -237,8 +244,16 @@ class uiExplorer(QDialog, FORM_CLASS):
             self.txtZielPfad.setPlaceholderText(self.tr("Specify destination path")) 
         else:
             self.txtZielPfad.setPlaceholderText("") 
+            
+        if (s.value( "status","")==''):
+            self.chkDar.setEnabled(False)
+            self.chkDar.setChecked(False)          
+        else:
+            self.chkDar.setEnabled(s.value( "status","")==b'ok')
+            if (s.value( "status","")!=b'ok'):
+                self.chkDar.setChecked(False)    
     
-    def cmdReset_clicked(self):
+    def EZU5B07B73B000A446CBEFCD87EF2D82514(self):
         self.chkDar.setChecked(True)
         self.chkGISDB.setChecked(False)
         self.chkLeer.setChecked(False)
@@ -248,11 +263,13 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.chkSaveDar.setChecked(False)
         self.chkOnlyDarField.setChecked(False)
         self.chkNoGISDBIntern.setChecked(False)
-        
+        QSettings("EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA()).setValue("status",'')
+        self.EZU1C9648848F904099A178AD545D77A882()
+        self.EZU663B59541A9B4AC1B23819C4A6E3E89B()
     
-    def browseZielPfad_clicked(self):
+    def EZU09753DE7B19B413CA8594D73CE7D6074(self):
         if self.txtZielPfad.text() == "":
-            s = QSettings( "EZUSoft", fncProgKennung() )
+            s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
             lastSHPDir = s.value("txtSHPDir", ".")
         else:
             lastSHPDir = self.txtZielPfad.text()
@@ -269,14 +286,14 @@ class uiExplorer(QDialog, FORM_CLASS):
             else:
                 self.txtZielPfad.setText(shpDirName)
                 
-        #SHPDir, Dummy = os.path.split(shpDirName)
-        #print "'" + SHPDir + "'" + "*"+"'" + Dummy + "'"
-        #if shpDirName != "":
-        #    s.setValue("lastSHPDir", shpDirName)
+
+
+
+
 
     
-    def OptSpeichern(self):        
-        s = QSettings( "EZUSoft", fncProgKennung() )
+    def EZU60469930E88C47F5AC4734E80EDBEBB6(self):        
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         s.setValue( "bGenDar", "Ja" if self.chkDar.isChecked() == True else "Nein")
         s.setValue( "bPrjNeu", "Ja" if self.rBNeu.isChecked() == True else "Nein")
         s.setValue( "iDarGruppe", self.cbGruppe.currentIndex())
@@ -292,12 +309,12 @@ class uiExplorer(QDialog, FORM_CLASS):
         s.setValue( "txtCodePage", self.cbCharSet.currentText())
         s.setValue( "txtSHPDir", self.txtZielPfad.text())
 
-    def Einlesen(self, rootname, qry):
+    def EZUB1A3A5F021794B749EB473C9B033A214(self, rootname, qry):
         tw = self.twCaigosLayer
         tw.clear()
-        # Fachschale, Thema, Gruppe, Ebene, layerid
+
         newparent = True
-        # 11.04.2019: Fehler bei leerer Fachschale durch Initialisierung mit None abgefangen
+
         Fachschale = None
         Thema = None
         Gruppe = None
@@ -307,12 +324,12 @@ class uiExplorer(QDialog, FORM_CLASS):
         p_item.setExpanded(True)
         p_item.setFlags(p_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
         while (qry.next()):
-            #print (qry.value(0),qry.value(1),qry.value(2),qry.value(3))
+
             if qry.value(0) != Fachschale:
                 newparent=True
                 f_item = QTreeWidgetItem(p_item)
                 f_item.setText(0, qry.value(0))
-                #f_item.setExpanded(True)
+
                 f_item.setCheckState(0,Qt.Unchecked)
                 f_item.setFlags(f_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
 
@@ -332,7 +349,7 @@ class uiExplorer(QDialog, FORM_CLASS):
 
             e_item = QTreeWidgetItem(g_item)
             e_item.setText(0, qry.value(3))
-            e_item.setData(1,0,qry.value(4)) # Key in unsichtbare 2. Spalte
+            e_item.setData(1,0,qry.value(4)) 
             e_item.setCheckState(0,Qt.Unchecked)
             e_item.setFlags(e_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
 
@@ -341,10 +358,9 @@ class uiExplorer(QDialog, FORM_CLASS):
             Gruppe=qry.value(2)
             newparent=False
     
-    def Anwenden(self):
-        # Check ob Import starten kann
-        chkurl="http://www.makobo.de/links/Caigos_CheckImport.php?"  
-        # 1. Test ob Ebenen gewählt
+    def EZU866EA2C310114D5CA9F718FEC89F651F(self):
+
+
         view = self.twCaigosLayer
         Liste=[]
         it = QTreeWidgetItemIterator(view,QTreeWidgetItemIterator.Checked)
@@ -356,9 +372,9 @@ class uiExplorer(QDialog, FORM_CLASS):
         if len(Liste) == 0:
             msgbox("Es wurden keine Ebenen zur Darstellung  ausgewählt") 
             return
-        # 2. Test ob alle Parameter gesetzt
-        # 1. Codepage muss eigentlich nicht kontolliert werden
-        # 2. Test ob ZielPfad vorhanden
+
+
+
         if self.chkSHPexp.isChecked():
             ZielPfad=self.txtZielPfad.text()                
             if ZielPfad == "":
@@ -369,16 +385,12 @@ class uiExplorer(QDialog, FORM_CLASS):
             if not os.path.exists(ZielPfad):
                 QMessageBox.critical(None, u"Shape Zielpfad nicht gefunden", ZielPfad)
                 return
-        
-        
-        try:
-            DownLoadOverQT(chkurl  + fncBrowserID() + "|" + str(myQGIS_VERSION_INT()) + ":" + fncPluginVersion(),EZUTempDir()+'test.zip')
-        except:
-            pass
-        super(uiExplorer, self).accept() # Fenster schließen
+
+
+        super(uiExplorer, self).accept() 
             
-    # Die Zeilen mit ausgewaehlter Checkox ausgeben
-    def Ausgeben(self):
+
+    def EZU06A3014A0EC345C9B52BC3ED5D2B05AA(self):
         view = self.twCaigosLayer
         Liste=[]
         it = QTreeWidgetItemIterator(view,QTreeWidgetItemIterator.Checked)
@@ -388,21 +400,21 @@ class uiExplorer(QDialog, FORM_CLASS):
                 Liste.append (item.text(1))    
             it += 1
 
-        self.OptSpeichern()
-        # Achtung Shape-Parameter werden der Übersicht halber über die QSettings "übergeben"
+        self.EZU60469930E88C47F5AC4734E80EDBEBB6()
+
         return Liste, self.chkDar.isChecked(),self.rBNeu.isChecked(), self.cbGruppe.currentIndex(),self.chk3DDar.isChecked(), self.chkGISDB.isChecked(),self.chkSHPexp.isChecked(), self.chkLeer.isChecked()
    
 
-    def LayerErmitteln(self,rootname,qry):
-        self.Einlesen (rootname,qry)
-
+    def EZU3B1BBFAC47624AEF82118DE7647883DE(self,rootname,qry):
+        self.EZUB1A3A5F021794B749EB473C9B033A214 (rootname,qry)
         result = self.exec_()
+
         if result==1:
-             return self.Ausgeben()
+             return self.EZU06A3014A0EC345C9B52BC3ED5D2B05AA()
         else:
-            # es wurde Schließen gedrückt
+
             return None,None,None,None,None,None,None,None
-            #QMessageBox.information( None,'','Abbruch') 
+
 
         
 if __name__ == "__main__":

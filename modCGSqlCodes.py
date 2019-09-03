@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- modCGSqlCodes: Gemeinsame Basis für QGIS2 und QGIS3
- 
  A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,47 +15,53 @@
  *                                                                         *
  ***************************************************************************/
 """
-def GeoTabName4Art (Art):
+
+
+
+
+
+
+def EZUBB35FE2AD3BE43C0BED5E2BB71976827 (Art):
     table=None
-    if Art == 0: # Point      
+    if Art == 0: 
         table="pointssqlspatial"
-    if Art == 1: # Line
+    if Art == 1: 
         table="linessqlspatial"
-    if Art == 2: # Kreis
+    if Art == 2: 
         table="arcssqlspatial"
-    if Art == 3: # Text
+    if Art == 3: 
         table="textssqlspatial"
-    if Art == 31: # Referenzlinie
+    if Art == 31: 
         table="textssqlspatial"
-    if Art == 4: # Bemaßung
+    if Art == 4: 
         table = None
-    if Art == 5: # Polylinie
+    if Art == 5: 
         table="segssqlspatial"
-    if Art == 6: # Fläche
+    if Art == 6: 
         table="polyssqlspatial"    
     return table
 
-def sqlStruk4Layer( LayerID):
-    sSQL = (u"SELECT dbname  as Fachschale, entityname as Thema, groupname as Gruppe, layername as Layer " # , layerid, layertyp "
+def EZU1B44A2C9E7584B0BAEB94E020A2B4139( LayerID):
+    sSQL = (u"SELECT dbname  as Fachschale, entityname as Thema, groupname as Gruppe, layername as Layer " 
                 "FROM (enttable INNER JOIN grptable ON enttable.entityid = grptable.entityid) "
                 "INNER JOIN lyrtable ON (grptable.groupid = lyrtable.groupid) AND (enttable.entityid = lyrtable.entityid) "
                 "WHERE layerid='%s'") % (LayerID)
     return sSQL
 
-def sqlStrukAlleLayer(LayerList = None, Richtung=''):
+def EZU97DD9229963D4C40BC10157CE31052F0(LayerList = None, Richtung=''):
     sSQL=""
     if LayerList:
         sSQL = "WHERE layerid In ("
         sSQL = sSQL + LayerList
         sSQL = sSQL + ")"
-    # Alphabetische Reihenfolge für Explorerbaum, dabei Layername DESC, da Einfügereihenfolge über moveLayer umgekeht
+
     sSQL = (u"SELECT dbname  as Fachschale, entityname as Thema, groupname as Gruppe, layername as layer, layerid, layertyp "
                 "FROM (enttable INNER JOIN grptable ON enttable.entityid = grptable.entityid) "
                 "INNER JOIN lyrtable ON (grptable.groupid = lyrtable.groupid) AND (enttable.entityid = lyrtable.entityid) "
                 "%s order by dbname,entityname,groupname,layername %s") % (sSQL, Richtung)
     return sSQL
     
-def sqlAlleLayerByPriAndGISDB(UserNum = '000', LayerList = None):
+def EZU8738A84187454718A9979A2226387046(UserNum = '000', LayerList = None):
     sSQL=""
     if LayerList:
         if len(LayerList.split(",")) == 1:
@@ -70,7 +70,7 @@ def sqlAlleLayerByPriAndGISDB(UserNum = '000', LayerList = None):
             sSQL = "AND lyrtable.layerid In ("
             sSQL = sSQL + LayerList
             sSQL = sSQL + ")"
-    # Ebenen nach Prioritäten sortiert
+
     sSQL = (u"SELECT layername, lyrtable.layerid, lyrtable.layertyp, dbname, priority "
                 "FROM prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id "
                 "WHERE usernr='%s' %s "
@@ -79,10 +79,10 @@ def sqlAlleLayerByPriAndGISDB(UserNum = '000', LayerList = None):
                 "select DISTINCT  layername,T1.layerid, layertyp,  dbname, priority from  ( "
                 "SELECT layername || '(RL)' as layername, lyrtable.layerid, 31 as layertyp, ''::text as  dbname, priority FROM prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid "
                 "LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id WHERE usernr='%s' AND lyrtable.layertyp=3 %s "
-                " \n") % (UserNum,sSQL,UserNum, sSQL) # 23.08.16 zusätzlich nach Layertyp (damit bei gleicher Pri Punkte über Flächen liegen)
+                " \n") % (UserNum,sSQL,UserNum, sSQL) 
     
     sSQL = sSQL + ") as T1 inner join "
-    sSQL = sSQL + "(SELECT layerid FROM  ( SELECT * FROM (" + sqlAtt4Massstab ( 3,None, UserNum) + ") AS dummy "
+    sSQL = sSQL + "(SELECT layerid FROM  ( SELECT * FROM (" + EZUE46C97B18D5843DFB7668B8846F26976 ( 3,None, UserNum) + ") AS dummy "
     sSQL = sSQL + ("INNER JOIN textatttable ON dummy.ATTid = textatttable.ta_idfa "
             "WHERE textatttable.ta_ag=0 and textatttable.lineattr != '{00000000-0000-0000-0000-000000000000}' ORDER BY attnum\n")
             
@@ -98,17 +98,17 @@ def sqlAlleLayerByPriAndGISDB(UserNum = '000', LayerList = None):
     "   ORDER BY priority DESC,layertyp ")
     return sSQL
 
-def sqlAllAttDef4Layer( Art, LayerID):
-    # verwendete Objekt-Attributdefinitionen aus der Geometrietabelle holen
-    TabName=GeoTabName4Art(Art)
+def EZU64C9598DF0AB4FADA28872A43F622D0A( Art, LayerID):
+
+    TabName=EZUBB35FE2AD3BE43C0BED5E2BB71976827(Art)
     if TabName:
         return (u"SELECT DISTINCT %s.defid, COALESCE(defname, '        ') as sortdefname FROM %s LEFT JOIN deftable ON %s.defid =deftable.defid where layerid='%s' order by sortdefname") % (TabName,TabName,TabName,LayerID)
     else:
         return None
   
-def sqlAtt4Massstab4All( Art, AktDef=None):
-    # Art 31 (Referenzpfeil) wird hier auf Text(abfrage) zurückgesetzt
-    # Attribute nach Maßstab - Grunddaten für alle Geometriearten gleich
+def EZU08438317C6A34E64A6AAB7424525B78B( Art, AktDef=None):
+
+
     sFilt = "" if AktDef == None else " deftable.defid='" + AktDef + "' AND "
     sSQL=""
     for i in range(5):
@@ -121,61 +121,63 @@ def sqlAtt4Massstab4All( Art, AktDef=None):
 
     return sSQL
 
-def sqlAtt4Massstab ( Art, AktDef, Group):
-    sSQL=sqlAtt4Massstab4All(Art,AktDef)      
-    if Art == 0: # Point      
+def EZUE46C97B18D5843DFB7668B8846F26976 ( Art, AktDef, Group):
+    sSQL=EZU08438317C6A34E64A6AAB7424525B78B(Art,AktDef)      
+    if Art == 0: 
         sSQL="select * from (" + sSQL +") as dummy inner join pointatttable ON dummy.ATTid = pointatttable.pta_idfa where pointatttable.pta_ag=" + str(Group)  + " order by attnum"  
-    if Art == 1: # Line
+    if Art == 1: 
         sSQL=sSQL
-    if Art == 2: # Kreis
+    if Art == 2: 
         sSQL="select * from (" + sSQL +") as dummy inner join (select * from arcatttable where arcatttable.aa_ag=" + str(Group) + ") as arc ON dummy.ATTid = arc.aa_idfa  inner join polyatttable  ON arc.polyattr = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
         sSQL = sSQL
-    if Art == 3 or Art == 31: # Text bzz Referenzlinie
+    if Art == 3 or Art == 31: 
        sSQL="select * from (" + sSQL +") as dummy inner join textatttable ON dummy.ATTid = textatttable.ta_idfa where textatttable.ta_ag=" + str(Group)  + " order by attnum"  
-    if Art == 4: # Bemaßung
+    if Art == 4: 
         sSQL = sSQL
-    if Art == 5: # Polylinie
+    if Art == 5: 
         sSQL="select * from (" + sSQL +") as dummy inner join segatttable  ON dummy.ATTid = segatttable.sa_idfa where segatttable.sa_ag=" + str(Group)  + " order by attnum"  
-    if Art == 6: # Fläche
+    if Art == 6: 
         sSQL="select * from (" + sSQL +") as dummy inner join polyatttable  ON dummy.ATTid = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
     return sSQL   
 
-def sqlAttParam4IDandArt( Art, AktAttID, Group):
+def EZU492650E7B7434899B738F74CBB9FD56D( Art, AktAttID, Group):
     sSQL=None
-    if Art == 0: # Point      
+    if Art == 0: 
         sSQL=("select * from  pointatttable  where pointatttable.pta_idfa = '%s' and  pointatttable.pta_ag=%d") % (AktAttID, Group)
 
-    if Art == 1 or Art == 5: # Strecke, Polylinie
-              #                      0                     1           2        3      4       5      6       7              8           9            10          11
+    if Art == 1 or Art == 5: 
+
         sSQL=("SELECT la_idfa AS st_attid, attrname AS st_attrname, la_linenr, used, color, sizemm, basemm, basecolor, linesigattr, linesigbegin,linesigofs, linesigofsline, "
-               #           12            13            14            15          16           17          18       19          20          21          22           23
+
               "       lineoffset, sigbeginattr, sigmiddleattr, sigendattr, transparent, denyatpercent, penid, basepenid, sigbeginpos, sigendpos, sigmiddlepos, geocolor, "
-               #           24
+
               "       scrresize, pentable.* "
               "FROM (frameatttable INNER JOIN lineatttable ON frameatttable.fa_id = lineatttable.la_idfa) "
               "INNER JOIN pentable ON lineatttable.penid =pentable.id "
-              "WHERE la_idfa='%s' AND used='J' AND la_ag=%i order by la_linenr DESC") %(AktAttID, Group) # 22.08.16 Reihenfolge (testweise) umgedreht, damit Symbolde der Baseline zuletzt
+              "WHERE la_idfa='%s' AND used='J' AND la_ag=%i order by la_linenr DESC") %(AktAttID, Group) 
 
-    if Art == 2: # Kreis
+    if Art == 2: 
         sSQL = None
-    if Art == 3: # Text
-        # nur noch für alte Version Rendering Wien 
-              #          0        1       2         3        4       5        6       7      8
+    if Art == 3: 
+
+
         sSQL=("SELECT defname, defid , attrname, lineattr, color, sizemm, fontname, bold, italic, "
-              #             9         10          11        12         13             14         15        16       17       18        19       20
+
               "         underline, freestyle, textalign, frametext, framecolor, framewidthmm, bkcolor, lineattr, tabpos1, tabpos2, usememo, blattnord, "
-              #             21          22             23               24            25       26
+
               "         oneline, charframetext, charframecolor, charframewidthmm, quality, ofsalign "
               "  FROM (textatttable INNER JOIN deftable ON textatttable.ta_idfa = deftable.scrattrname1) "
               "        INNER JOIN frameatttable ON textatttable.ta_idfa = frameatttable.fa_id "
               "  WHERE defid='%s' AND textatttable.ta_ag=%i;") % (AktAttID,Group)
-        #sSQL=None # unused
-    if Art == 4: # Bemaßung
+
+    if Art == 4: 
         sSQL = None
 
-    if Art == 6: # Fläche
+    if Art == 6: 
         sSQL=None       
     return sSQL
 
+if __name__ == "__main__":
+    pass
 
 

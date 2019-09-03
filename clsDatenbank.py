@@ -1,44 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- clsDatenbank: Gemeinsame Basis für QGIS2 und QGIS3
-  17.04.2019:
-  - like '%%\\\_objid'
-  12.04.2019: 
-  - universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
-  30.10.2018 V0.8
-  - Fehler abfangen, wenn keine DB-Verbindung definiert
-  18.07.2018 V0.6
-  - Komplettüberarbeitung Datenbankzugriff
- 
-  27.10.2017 V0.5
-  - DBFAnpassen definiert: Löschen von DPF-Spalten
-  09.10.2017 V0.5
-  - Shapeexport optional Darstellung (im Shapeverzeichnis) speichern
-  04.07.2017 V0.4
-  - GISDB Tab jetzt auch an Punkten (Fehler im Select)
-  - CheckVerbDaten umgebaut
-  - CAIGOS 2016: VectorLayerPath kein setsrid mehr notwendig
-  
-  23.08.2016 V0.3
-  - Layerreihenfolge nach Priorität zusätzlich nach Layertyp
-  - sqlAttParam4IDandArt Reihenfolge der Teillinien (testweise) umgekehrt 
-  
-  09.08.2016 V0.3
-  - optionale 3D Anbindung
-  - Einbindung SQL für Kreis
-  
-  20.06.2016 V0.2
-  - Einbindung der GIDDB Sachdaten
-                                 A QGIS plugin
- CAIGOS-PostgreSQL/PostGIS in QGIS darstellen
-                              -------------------
-        begin                : 2016-04-18
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by EZUSoft
+ A QGIS plugin
+CaigosConnector: Connect CAIGOS-GIS with QGIS
+        copyright            : (C) 2019 by EZUSoft
         email                : qgis (at) makobo.de
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -48,7 +15,46 @@
  *                                                                         *
  ***************************************************************************/
 """
-from osgeo import ogr # 02.10.17 muss bei 2.99 am Anfang kommen
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from osgeo import ogr 
 from qgis.core import *
 from qgis.utils import os, sys
 try:
@@ -84,32 +90,32 @@ import locale
 import uuid
 
 
-"""
-/***************************************************************************/
-                    Teil1: Klasse Datenbankzugriffe
-/***************************************************************************/
-"""
+
+
+
+
+
 class pgOpenDatabase():
     def __init__( self, service, host, port, dbname, uid, pwd):
         self.Fehler = None
-        # 19.07.18: GUID als Name, da unter QGIS3.2 ein Löschen der DB bei offenen Recordset zum Absturz führt
+
         self.ConNameByGIUD=str(uuid.uuid4())
         self.QSqlDB = QSqlDatabase.addDatabase("QPSQL", self.ConNameByGIUD )
-        """
-        if service == "":
-            self.QSqlDB.setHostName(host)
-            self.QSqlDB.setPort(int(port))
-        else:
-            self.QSqlDB.setService(service)
+
+
+
+
+
+
+
+
+
+
+
         
-        self.QSqlDB.setDatabaseName(dbname)
-        self.QSqlDB.setUserName(uid)
-        self.QSqlDB.setPassword(pwd)
-        """
-        
-        # 19.08.18:
-        # irgendwie ist/war das doppelt, die Uri wird für andere Programmteile benötigt
-        # und in der alten Version wurde die auch zur DB-Anbindung genutzt: db.setConnectOptions( conninfo0 )
+
+
+
         self.uri = QgsDataSourceUri()
         if service == "":
             self.uri.setConnection( host, port, dbname, uid, pwd )
@@ -119,10 +125,10 @@ class pgOpenDatabase():
         self.QSqlDB.setConnectOptions( self.uri.connectionInfo() )
 
     
-    def GetConnString(self):
+    def EZUA098FD21021B43B78B52D0DC3130605D(self):
         return self.uri.connectionInfo()
 
-    # Überlegen, ob das Open gleich mit ins Ini kommt
+
     def Open(self):
         if not self.QSqlDB:
             return None
@@ -133,16 +139,16 @@ class pgOpenDatabase():
             "Text: " + self.QSqlDB.lastError().text() +  '\n' +
             "Type: " + str(self.QSqlDB.lastError().type()) +  '\n' +
             "Number: " + str(self.QSqlDB.lastError().number()) )
-            self.Fehler =  (toUnicode(err))
+            self.Fehler =  (EZUC936D29251B44D4E994497BF023338C7(err))
             self.QSqlDB = None
 
-    def getFehler(self):
+    def EZU03F45B01171E465F835613DBEE097689(self):
         return self.Fehler
     
-    def OpenRecordset (self, SQLString):
-        # in Python 3 hängt rs scheinbar noch an der QSqlDatabase
-        # weshalb nach zerstören der pgDatabaseNeu() Instanz  bzw. bei  QSqlDatabase.removeDatabase(self.conname)
-        # beim Zugriff ein Absturz auftritt
+    def EZUDCF0989FCCB948B08C56317AE7037619 (self, SQLString):
+
+
+
         rs = QSqlQuery(self.QSqlDB)
         if rs.exec_( SQLString ):
             return rs
@@ -152,34 +158,34 @@ class pgOpenDatabase():
             "Type: " + str(rs.lastError().type()) +  "\n" +
             "Number: " + str(rs.lastError().number()) +  "\n" +
             "SQL: " + SQLString)
-            self.Fehler =  (toUnicode(err))            
+            self.Fehler =  (EZUC936D29251B44D4E994497BF023338C7(err))            
     
-    def CheckVerbDaten(self,idxVersion = None, EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
+    def EZU8011F18E65644E5D9231765F31D7EE19(self,idxVersion = None, EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
         Meldung =""; Fehler=""; Warnung = ""
         if not idxVersion:
-            idxVersion = GetCGVersion()  
+            idxVersion = EZU1C1D2B936A1D475D8F4C176B585F2301()  
         if not EPSG:
-            EPSG = GetEPSG()  
+            EPSG = EZU07A28165B1CC4CC09B4AC9235EA3E8E9()  
         if not CGSignaturPfad:
-            CGSignaturPfad = GetCGSignaturPfad()    
+            CGSignaturPfad = EZUEA8B6496E4A94763B4DE5BCE67BA0F14()    
         if not CGProjektName:
-            CGProjektName = GetCGProjektName()      
+            CGProjektName = EZU0239CDC0875B4C7B837227F9004BC5D0()      
         if not conninfo:
-            conninfo = self.GetConnString()
+            conninfo = self.EZUA098FD21021B43B78B52D0DC3130605D()
         
-        # 16.08.18 DB-Check war deaktiviert!?
-        #          --> neu aktiviert
+
+
         QApplication.setOverrideCursor(Qt.WaitCursor)
         if self.Open():
             Meldung= u"Datenbankverbindung erfolgreich"
-            if self.OpenRecordset("Select * from pointssqlspatial limit 1"):
+            if self.EZUDCF0989FCCB948B08C56317AE7037619("Select * from pointssqlspatial limit 1"):
                 Meldung = Meldung + "\n" if Meldung else ""
                 Meldung = Meldung + u"CAIGOS Geodatentabelle in der Datenbank gefunden"
             else:
                 Fehler=Fehler + "\n" if Fehler else ""
                 Fehler=Fehler + u"Keine CAIGOS Geodatentabelle in der Datenbank gefunden:\n" + "\n"       
         else:
-            Fehler= u"Datenbankverbindung schlug fehl:\n" + self.getFehler() + "\n"
+            Fehler= u"Datenbankverbindung schlug fehl:\n" + self.EZU03F45B01171E465F835613DBEE097689() + "\n"
         QApplication.restoreOverrideCursor()
         
         if EPSG == None or EPSG == "" or EPSG == 0 or EPSG == "0":
@@ -192,18 +198,21 @@ class pgOpenDatabase():
     
         if CGSignaturPfad == "":
             Warnung=Warnung + "\n" if Warnung else ""
-            Warnung=Warnung+toUnicode("CAIGOS Signaturverzeichnis nicht festgelegt\n  ->Es können keinen SVG-Symbole generiert werden")           
+            Warnung=Warnung+EZUC936D29251B44D4E994497BF023338C7("CAIGOS Signaturverzeichnis nicht festgelegt\n  ->Es können keinen SVG-Symbole generiert werden")           
         else:
-            sigPfad = CGSignaturPfad    
-            if idxVersion  == 1: sigPfad = sigPfad  + CGProjektName + '/'
+            sigPfad = CGSignaturPfad 
+
+
+
+
 
             if os.path.exists(sigPfad):
                 Meldung = Meldung + "\n" if Meldung else ""
                 Meldung = Meldung + "CAIGOS Signaturverzeichnis gefunden"
             else:
                 Warnung = Warnung + "\n" if Warnung else ""
-                Warnung = Warnung +  u"\nCAIGOS Signaturverzeichnis ('" + sigPfad + toUnicode("') nicht gefunden\n  ->Es können keine SVG-Symbole generiert werden")            
-        
+                Warnung = Warnung +  u"\nCAIGOS Signaturverzeichnis ('" + sigPfad + EZUC936D29251B44D4E994497BF023338C7("') nicht gefunden\n  ->Es können evtl. keine SVG-Symbole generiert werden")            
+         
         if Fehler:
             QMessageBox.critical( None, u"Es sind Fehler aufgetreten", Fehler)
             return False
@@ -223,7 +232,7 @@ class pgOpenDatabase():
 
 class pgCurrentDB(pgOpenDatabase):
     def __init__( self ):
-        s = QSettings( "EZUSoft", fncProgKennung() )
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         service = s.value( "service", "" )
         host    = s.value( "host", "localhost" )
         port    = s.value( "port", "5432" )
@@ -237,8 +246,8 @@ class pgCurrentDB(pgOpenDatabase):
     def __del__(self):
         pgOpenDatabase.__del__(self)
 
-def pgCurrendLookUp (sqlStringMitEinemFeld, OffeneDB = None, FldNum = 0):  
-# aktuell ungenutzt
+def EZU027799A0458943EEB71284D19BAA3FE5 (sqlStringMitEinemFeld, OffeneDB = None, FldNum = 0):  
+
     if OffeneDB:
         AktDB = OffeneDB
     else:
@@ -247,7 +256,7 @@ def pgCurrendLookUp (sqlStringMitEinemFeld, OffeneDB = None, FldNum = 0):
             del(AktDB)
             return None
             
-    AktRS= AktDB.OpenRecordset (sqlStringMitEinemFeld)
+    AktRS= AktDB.EZUDCF0989FCCB948B08C56317AE7037619 (sqlStringMitEinemFeld)
     AktRS.next()
     Wert = AktRS.value(FldNum)
     del(AktRS)
@@ -256,135 +265,150 @@ def pgCurrendLookUp (sqlStringMitEinemFeld, OffeneDB = None, FldNum = 0):
     return Wert
         
     
-"""
-/***************************************************************************/
-                    Teil2: nachschlagen in der Registy
-/***************************************************************************/
-"""
-def GetCGVersion():
-    s = QSettings( "EZUSoft", fncProgKennung() )
+
+
+
+
+
+def EZU1C1D2B936A1D475D8F4C176B585F2301():
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     try:
         return int(s.value( "cgversion"))
     except:
         return None
 
-def sGetCGVersion():
-    s = QSettings( "EZUSoft", fncProgKennung() )
+def EZU6F300E76DB074FB99636B535E712DED7():
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     try:
         if int(s.value( "cgversion"))==0: return "V11"
         if int(s.value( "cgversion"))==1: return "V20xx"
     except:
         return None
         
-def GetEPSG():
-    s = QSettings( "EZUSoft", fncProgKennung() )
+def EZU07A28165B1CC4CC09B4AC9235EA3E8E9():
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     try:
         return int(s.value( "epsg"))
     except:
         return None
 
-def GetQSVGSignaturPfad():
-    # SVG's im Shape-Pfad oder im temporären Projektpfad speichern
-    # Überarbeitung 15.02.18
-    s = QSettings( "EZUSoft", fncProgKennung() )
-    if s.value( "bSHPexp") == "Ja": # and s.value("txtSHPDir","nicht festgelegt") != "nicht festgelegt":
+def EZUA6B299741D5D4E39B1F0ADB88AD47F18():
+
+
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+    if s.value( "bSHPexp") == "Ja": 
         return s.value("txtSHPDir") + '/'
     else:      
-        return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + GetCGProjektName() + '/'
-    #return os.path.dirname(__file__) + "/" + 'projekt_svg' + '/' + GetCGProjektName() + '/'          
+        return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + EZU0239CDC0875B4C7B837227F9004BC5D0() + '/'
 
-def GetCGSignaturPfad():
-    s = QSettings( "EZUSoft", fncProgKennung() )
+
+def EZUEA8B6496E4A94763B4DE5BCE67BA0F14():
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     return s.value("cgsignaturpfad","nicht festgelegt")
 
-def GetCGProjektName():
-    s = QSettings( "EZUSoft", fncProgKennung() )
+def EZU0239CDC0875B4C7B837227F9004BC5D0():
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     return s.value( "cgprojektname")  
 
-def GetDBname():
-    s = QSettings( "EZUSoft", fncProgKennung() )
+def EZUA079F45549884E088F43D9E667F651BF():
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     return s.value( "dbname")
 
 
 
-"""
-/***************************************************************************/
-                    Teil3: other stuff
-                           --> Datenbankarbeit und SQL-Codes sollten mal getrennt werden
-/***************************************************************************/
-"""
 
 
-"""
-/***************************************************************************/
-                    Teil4: Zugriffe auf PostgreSQL
-/***************************************************************************/
-"""
-def dbLayerStrukturByID(LayerID, AktDB = None):
-    # Lesen und übergeben
-    #      0        1       2      3
-    # Fachschale, Thema, Gruppe, Layer
+
+
+
+
+
+
+
+
+
+
+
+def EZU7F7DA500B4FF409BB13A35E5F7EC2E59(LayerID, AktDB = None):
+
+
+
     if AktDB:
         db1=AktDB
     else:
         db1 = pgCurrentDB()
-    rs1 = db1.OpenRecordset (sqlStruk4Layer(LayerID))
-    rs1.next() # erster (und letzer) Datensatz
+    rs1 = db1.EZUDCF0989FCCB948B08C56317AE7037619 (EZU1B44A2C9E7584B0BAEB94E020A2B4139(LayerID))
+    rs1.next() 
     ausg = rs1.value(0),rs1.value(1),rs1.value(2),rs1.value(3)
     del (rs1)
     if not AktDB: del (db1)
     return ausg
 
-def db2sqlGisDBShortFieldName (TabName, AktDB = None):
-    # Erzeugt einen SQL-String für den Zugriff auf eine GISDB mit kurzen Aliasnamen
+def EZU624FEDF4E3654DEBA88006DC55E937C2 (TabName, GeoTabName, AktDB = None):
+
+
+
     if AktDB:
         db=AktDB
     else:
         db = pgCurrentDB()
-        
-    rs = db.OpenRecordset("select column_name from information_schema.columns where table_name='" + TabName + "'")
+
+    geoFList=[]
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619("select column_name from information_schema.columns where table_name='" + GeoTabName + "'")
+    LastGeoTabSpalte = ""
+    while (rs.next()) :
+        geoFList.append (rs.value(0))
+        LastGeoTabSpalte = rs.value(0)
+
+
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619("select column_name from information_schema.columns where table_name='" + TabName + "'")
     s = "select "
     while (rs.next()) :
-        # 12.04.19: universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
+
         if rs.value(0)[-6:] == '_objid':
-            s = s + rs.value(0) + " as objidgistab," # objid wäre sonnst doppelter Name in Abfrage, da Spalte objid auch in GeoTab
+            s = s + rs.value(0) + " as objidgistab," 
         else:
-            s = s + rs.value(0) + " as " + rs.value(0).replace(TabName + '_','') + ","
-    # letztes , weg
+
+            NeuNam=rs.value(0).replace(TabName + '_','')           
+            while NeuNam in geoFList:
+                NeuNam="_" + NeuNam               
+            s = s + rs.value(0) + " as " + NeuNam + ","
+    
+
     s = s[:-1]
     s=  s + " FROM " + TabName 
     del rs
     if not AktDB: del (db)
-    return s
+    return s, LastGeoTabSpalte
 
 
-def dbExistsGISDBTab(GISDBTabName, AktDB = None):
-    # ermittlt, ob eine bestimmte GISDB-Tabelle existiert
-    # --> Tabellenname und ein Feld <tabname>_objid muss exisitieren
+def EZU728F99262A784CE298F08321DF84E81D(GISDBTabName, AktDB = None):
+
+
     if AktDB:
         db=AktDB
     else:
         db = pgCurrentDB()
 
     sDB=GISDBTabName.lower()
-    # 12.04.19: universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
+
     sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%\\\_objid'")%(sDB)
-    rs=db.OpenRecordset(sSQL)
+    rs=db.EZUDCF0989FCCB948B08C56317AE7037619(sSQL)
     Antw=rs.size()==1
     del rs
     if not AktDB: del (db)
     return (Antw) 
 
-def dbObjID4GISDBTab(GISDBTabName, AktDB = None):
+def EZUE2234C86576E4AFDBA184A9078854DDC(GISDBTabName, AktDB = None):
     if AktDB:
         db=AktDB
     else:
         db = pgCurrentDB()
 
     sDB=GISDBTabName.lower()
-    # 12.04.19: universeller objid muss nicht zwingend den vorgestellten Tabellennamen haben (z.B. Fachschale Baum)
+
     sSQL=("SELECT attname FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%\\\_objid'")%(sDB)
-    rs=db.OpenRecordset(sSQL)
+    rs=db.EZUDCF0989FCCB948B08C56317AE7037619(sSQL)
     if rs.size()==1:
         rs.next()
         Antw = rs.value(0)
@@ -392,11 +416,14 @@ def dbObjID4GISDBTab(GISDBTabName, AktDB = None):
     if not AktDB: del (db)
     return (Antw)
 
-def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID):
-    # 12.04.19 neu RefObjID
-    bDeltaTexte = True # evtl. später mal optional 
+def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID):
+
+
+    bDeltaTexte = True 
     uri = None
-    geoTabName=GeoTabName4Art(Art)
+    LastGeoTabSpalte=None
+        
+    geoTabName=EZUBB35FE2AD3BE43C0BED5E2BB71976827(Art)
     if LayerID:
         where="layerid='%s'" % (LayerID)
     else:
@@ -406,11 +433,14 @@ def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion
         ken3D="Z"
     else:    
         ken3D=""
-        
+    
+
     if GISDbTab:
         if bShape:
-            # Tabellennamen aus Spalte kürzen, da Shape nur 10 Zeichen
-            sql4GISDB = db2sqlGisDBShortFieldName(GISDbTab).replace("\\","")
+
+
+            sql4GISDB, LastGeoTabSpalte = EZU624FEDF4E3654DEBA88006DC55E937C2(GISDbTab,geoTabName)
+            sql4GISDB.replace("\\","")
             sqlZusatz = (' left join (%s) as gtab on %s.objid = gtab.objidgistab') % (sql4GISDB,geoTabName)
         else:
             sqlZusatz = (' left join %s  on %s.objid = %s.%s') % (GISDbTab,geoTabName,GISDbTab,refObjID)
@@ -418,8 +448,8 @@ def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion
     else:
         sqlZusatz=""
     
-    if myQGIS_VERSION_INT() < 21200: # ab Lyon
-        # Unterabfrage definieren - macht das Ganze aber ziemlich langsam und ist bei Essen nicht mehr notwendig
+    if EZUC86841CA58BC4846B265D42D4397141D() < 21200: 
+
         IndexGen1="(SELECT row_number() over () AS _uid_,* FROM "
         IndexGen2=" as dummy)"
         Key="_uid_"
@@ -428,128 +458,128 @@ def VectorLayerPath ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion
         IndexGen2 =''
         Key="objid"
     
-    #08.08.16:
-    # table='%s' --> table=\"%s\": sicherheitshalber für alle, obwohl es nur beim Kreis Probleme gab
+
+
     
-    # in CAIGOS 2016 steht der EPSG-Code jetzt korrekt in PostGIS
-    # der neue Code ist irgendwie schlecht aus dem alten ableitbar --> 2 komplett verschiedene Varianten 
-    if cgVersion == 0: # alte Variante mit EPSG-Einabu
-        if Art == 0: # Point      
+
+
+    if cgVersion == 0: 
+        if Art == 0: 
             table=("%s(select *, st_setsrid(st_translate(shape, deltar, deltah),%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
-        if Art == 1: # Line
+        if Art == 1: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 2: # Kreis
-            # 05.10.16: Kreis als Fläche
-            #table= ("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            #uri=("%s key='%s' srid=%d type=CircularString table='%s' (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, table, where)
+        if Art == 2: 
+
+
+
             table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            if myQGIS_VERSION_INT()  < 21200:
+            if EZUC86841CA58BC4846B265D42D4397141D()  < 21200:
                 uri=None
             else:
                 uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
 
-        if Art == 3: # Text
+        if Art == 3: 
             sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
             table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 31: # Textreferenzpfeil
-            # 1. Punkt steht in "shape" 
-            # 2. Punkt "st_translate(shape, deltar, deltah)"           
+        if Art == 31: 
+
+
             sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
             table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 4: # Bemaßung
+        if Art == 4: 
             uri = None
-        if Art == 5: # Polylinie
+        if Art == 5: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
-        if Art == 6: # Fläche
+        if Art == 6: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
     else:
-        if Art == 0: # Point      
+        if Art == 0: 
             table=("%s(select *, st_translate(shape, deltar, deltah) as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
-        if Art == 1: # Line
+        if Art == 1: 
             table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 2: # Kreis
+        if Art == 2: 
             table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as geom from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            if myQGIS_VERSION_INT()  < 21200:
+            if EZUC86841CA58BC4846B265D42D4397141D()  < 21200:
                 uri=None
             else:
                 uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 3: # Text
+        if Art == 3: 
             sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
             table=("%s(select *," + sShape  + " as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 31: # Textreferenzpfeil
-            # 1. Punkt steht in "shape" 
-            # 2. Punkt "st_translate(shape, deltar, deltah)"           
+        if Art == 31: 
+
+
             sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
             table=("%s(select *," + sShape  + " as geom from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-        if Art == 4: # Bemaßung
+        if Art == 4: 
             uri = None
-        if Art == 5: # Polylinie
+        if Art == 5: 
             table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
-        if Art == 6: # Fläche
+        if Art == 6: 
             table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
-    return uri
+    return uri, LastGeoTabSpalte
     
 
-"""    
-def sqlLayerIsEmpty( Art, LayerID):
-    geoTabName=GeoTabName4Art(Art)
-    sSQL = "SELECT count(*) FROM " + geoTabName + " where layerid='" + LayerID + "'"
-    db1 = pgCurrentDB()
-    db1.Open()
-    rs1 = db1.OpenRecordset (sSQL)
-    rs1.next() # erster (und letzer) Datensatz
-    if rs1.value(0) > 0:
-        Wert = True
-    else:    
-        Wert = False
-    del (rs1)
-    del (db1)
-    return Wert
-"""    
 
-def AttDefID4Layer( db, LayerID, cgUser):
-    # Attributdefinitionen der Ebene auslesen
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def EZUAFAF458DCD164EA4A76CF69189C827B7( db, LayerID, cgUser):
+
     sqlString=("select defid from prptable where layerid='%s' and usernr='%s'") %(LayerID, cgUser)
-    rs = db.OpenRecordset(sqlString)
-    rs.next() # erster (und letzer) Datensatz
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sqlString)
+    rs.next() 
     Wert = rs.value(0)
     del(rs)
     return Wert
 
-def AttDefName4ID (db,DefID):
-    # Name der Attributdefinition aus der DefID ermitteln
+def EZUDCADB4666E944E57BEC334CD9635C33E (db,DefID):
+
     sqlString=("SELECT defname FROM  deftable WHERE defid ='%s'") % (DefID)
-    rs = db.OpenRecordset(sqlString)
-    rs.next() # erster (und letzer) Datensatz
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sqlString)
+    rs.next() 
     Wert = rs.value(0)
     del(rs)
     return Wert
 
-def NeedLine4TextLayer(db,LayerID, cgUser):  
-    sqlString= sqlAtt4Massstab ( 3,None, cgUser)
+def EZUD50D8C51F08C4A5EA7A344E41666D439(db,LayerID, cgUser):  
+    sqlString= EZUE46C97B18D5843DFB7668B8846F26976 ( 3,None, cgUser)
     sqlString = "select count(*) from (" + sqlString + ") as t1 inner join ("
     sqlString = sqlString + ("SELECT DISTINCT textssqlspatial.defid FROM textssqlspatial LEFT JOIN deftable ON textssqlspatial.defid =deftable.defid where layerid='%s' and textssqlspatial.defid != '{00000000-0000-0000-0000-000000000000}' union all select defid from prptable where layerid='%s' and usernr='%s'")%(LayerID,LayerID,cgUser)
     sqlString = sqlString + ") as t2 on t1.adid = t2.defid"
 
-    rs = db.OpenRecordset(sqlString)
-    rs.next() # erster (und letzer) Datensatz
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sqlString)
+    rs.next() 
     Wert=rs.value(0) != 0
     del(rs)
     return Wert
 
-def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negativliste=None, positivliste=None):
+def EZUCA7646F5CB604929B5B1138CDCC58756 (shpdat, bOnlyDarField, bNoGISDBIntern, LastGeoTabSpalte, likeShpDat = None, negativliste=None, positivliste=None):
     paramanz=0
     if likeShpDat: paramanz+=1
     if negativliste: paramanz+=1
@@ -559,40 +589,42 @@ def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negat
     
     source = ogr.Open(shpdat, update=True)
     if source is None:
-        addFehler(tr('ogr: can not open: ') + shpdat)
+        EZUC8DCB02F1A8145AF82C8A69A43E0529B(tr('ogr: can not open: ') + shpdat)
         return
     layer = source.GetLayer()
     laydef = layer.GetLayerDefn()
     
-    # alle Spaltennamen ermitteln
-    bOrgSHP = False
+
+    
+
+
+
     schema = []
     for n in range(laydef.GetFieldCount()):
-        if laydef.GetFieldDefn(n).name == "shape": bOrgSHP = True # shape ist immer letzte Spalte der CAIGOS-Geodaten
+
         schema.append(laydef.GetFieldDefn(n).name)
     
 
-    if bNoGISDBIntern:
+    if bNoGISDBIntern: 
         go = False
         for sp in schema:
-            if sp == "shape":
-                go=True  # shape ist immer letzte Spalte der CAIGOS-Geodaten
+            if sp == LastGeoTabSpalte:
+                 go=True  
 
             if go :
                 if sp in ["id", "objidgista", "pmfmark","pmfkey", "datestampn", "timestampn","datestampe", "timestampe"]:
                     layer.DeleteField(laydef.GetFieldIndex(sp))
                     delAnz+=1 
                 
-    if bOnlyDarField and bOrgSHP:
-        for sp in schema:
-            if sp == "shape":
-                layer.DeleteField(laydef.GetFieldIndex("shape"))
-                break  # shape ist immer letzte Spalte der CAIGOS-Geodaten
 
+    if bOnlyDarField: 
+        for sp in schema:
             if not sp in ["defid", "alpha", "pstext"]:
                 layer.DeleteField(laydef.GetFieldIndex(sp))
                 delAnz+=1 
-
+            if sp == LastGeoTabSpalte:
+                break
+            
                 
     if likeShpDat:
         likesource = ogr.Open(likeShpDat, update=True)
@@ -608,7 +640,7 @@ def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negat
                 delAnz+=1   
 
     elif positivliste:
-        # alle anderen löschen
+
         for sp in schema:
             if not sp in positivliste:
                 layer.DeleteField(laydef.GetFieldIndex(sp))
@@ -622,7 +654,7 @@ def DBFAnpassen (shpdat, bOnlyDarField, bNoGISDBIntern, likeShpDat = None, negat
     return delAnz
     
 if __name__ == "__main__":
-    print (("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%_objid'")%('SCHACHT'))
+    dummy=1
 
 
 
