@@ -7,15 +7,19 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=CAIGOS PostgreSQL Konnektor
+name=CAIGOS Konnektor
 qgisMinimumVersion=2.8
 qgisMaximumVersion=3.99
 description=CAIGOS SQL Projekte anzeigen
 
 author=Mike Blechschmidt EZUSoft
 email=qgis@makobo.de
-version=0.9.2
-changelog=21.10.2019 V0.9.2:
+version=0.9.3
+changelog=14.11.2019 V0.9.3:
+        - Umsetzung der Objektklassen
+	- Punktsignaturen mit Text Parameter "Zentrieren" umgesetzt
+
+        21.10.2019 V0.9.2:
         - Umsetzung der Textumrandung
 	- Textrahmenbreite halbiert
 

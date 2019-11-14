@@ -31,6 +31,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 from qgis.utils import os, sys
 try:
     from PyQt5.QtCore import QSettings
@@ -169,7 +170,8 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.cmdReset.clicked.connect(self.EZU5B07B73B000A446CBEFCD87EF2D82514)         
         self.chkSHPexp.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)  
         self.chkGISDB.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)      
-
+        self.chkFiltObjKl.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)
+        
         chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
         self.EZU1C9648848F904099A178AD545D77A882()
 
@@ -178,6 +180,8 @@ class uiExplorer(QDialog, FORM_CLASS):
         bPrjNeu = True  if s.value( "bPrjNeu", "Ja" )   == "Ja"   else False
         bLeer = False   if s.value( "bLeer", "Nein" )   == "Nein" else True
         bDBTab = False  if s.value( "bDBTab", "Nein" )  == "Nein" else True
+        bFiltObjKl = False  if s.value( "bFiltObjKl", "Nein" )  == "Nein" else True
+        bDarObjKl = False   if s.value( "bDarObjKl", "Nein" )   == "Nein" else True
         b3DDar = False  if s.value( "b3DDar", "Nein" )  == "Nein" else True
         bSHPexp = False if s.value( "bSHPexp", "Nein" ) == "Nein" else True
         bSaveDar = True if s.value( "bSaveDar", "Ja" )  == "Ja"   else False
@@ -185,19 +189,24 @@ class uiExplorer(QDialog, FORM_CLASS):
         bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
         chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"   
         iCodePage=s.value( "iCodePage", 0)
+        iObjKlasse=s.value( "iObjKlasse", 0)
 
         self.txtZielPfad.setText(s.value( "txtSHPDir", "" ))
         
         self.cbCharSet.addItems(self.charsetList)
         self.cbCharSet.setCurrentIndex(int(iCodePage))
-        
+
+        self.cbObjKlasse.setCurrentIndex(int(iObjKlasse))        
+ 
         iGruppe=s.value( "iDarGruppe", 0 )
 
         self.chkDar.setChecked(bGenDar)
         self.chkGISDB.setChecked(bDBTab)
+        self.chkFiltObjKl.setChecked(bFiltObjKl)
+        self.chkDarObjKl.setChecked(bDarObjKl)
         self.chkLeer.setChecked(bLeer)
         self.chk3DDar.setChecked(b3DDar)
-        self.chkLeer.setChecked(bLeer)
+        self.chkDarObjKl.setChecked(bDarObjKl)
         
         self.chkSHPexp.setChecked(bSHPexp)
         self.chkSaveDar.setChecked(bSaveDar)
@@ -219,7 +228,7 @@ class uiExplorer(QDialog, FORM_CLASS):
 
         for g in range(5): 
             self.cbGruppe.addItem("Gruppe-" + str(g))
-        self.cbGruppe.setCurrentIndex(iGruppe)
+        self.cbGruppe.setCurrentIndex(iGruppe)  
     
     def EZU1C9648848F904099A178AD545D77A882(self):
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
@@ -233,6 +242,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         bGenSHP = self.chkSHPexp.isChecked() 
         bDBTab  = self.chkGISDB.isChecked()
+        bFiltObjKl= self.chkFiltObjKl.isChecked()
 
         self.browseZielPfad.setEnabled(bGenSHP) 
         self.cbCharSet.setEnabled(bGenSHP) 
@@ -240,6 +250,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.chkSaveDar.setEnabled(bGenSHP) 
         self.chkOnlyDarField.setEnabled(bGenSHP) 
         self.chkNoGISDBIntern.setEnabled(bDBTab and bGenSHP) 
+        self.cbObjKlasse.setEnabled(bFiltObjKl)
         if bGenSHP:
             self.txtZielPfad.setPlaceholderText(self.tr("Specify destination path")) 
         else:
@@ -256,6 +267,8 @@ class uiExplorer(QDialog, FORM_CLASS):
     def EZU5B07B73B000A446CBEFCD87EF2D82514(self):
         self.chkDar.setChecked(True)
         self.chkGISDB.setChecked(False)
+        self.chkFiltObjKl.setChecked(False)
+        self.chkDarObjKl.setChecked(False)
         self.chkLeer.setChecked(False)
         self.chk3DDar.setChecked(False)
         
@@ -298,6 +311,8 @@ class uiExplorer(QDialog, FORM_CLASS):
         s.setValue( "bPrjNeu", "Ja" if self.rBNeu.isChecked() == True else "Nein")
         s.setValue( "iDarGruppe", self.cbGruppe.currentIndex())
         s.setValue( "bDBTab", "Ja" if self.chkGISDB.isChecked() == True else "Nein")
+        s.setValue( "bFiltObjKl", "Ja" if self.chkFiltObjKl.isChecked() == True else "Nein")
+        s.setValue( "bDarObjKl", "Ja" if self.chkDarObjKl.isChecked() == True else "Nein")
         s.setValue( "bLeer", "Ja" if self.chkLeer.isChecked() == True else "Nein")
         s.setValue( "b3DDar", "Ja" if self.chk3DDar.isChecked() == True else "Nein")
         s.setValue( "bSHPexp", "Ja" if self.chkSHPexp.isChecked() == True else "Nein")
@@ -306,6 +321,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         s.setValue( "bNoGISDBIntern", "Ja" if self.chkNoGISDBIntern.isChecked() == True else "Nein")
        
         s.setValue( "iCodePage", self.cbCharSet.currentIndex())
+        s.setValue( "iObjKlasse", self.cbObjKlasse.currentIndex())
         s.setValue( "txtCodePage", self.cbCharSet.currentText())
         s.setValue( "txtSHPDir", self.txtZielPfad.text())
 
@@ -401,10 +417,18 @@ class uiExplorer(QDialog, FORM_CLASS):
             it += 1
 
         self.EZU60469930E88C47F5AC4734E80EDBEBB6()
+        fObjKl=-1
+        if self.chkFiltObjKl.isChecked():
+            fObjKl = self.cbObjKlasse.currentIndex()
 
-        return Liste, self.chkDar.isChecked(),self.rBNeu.isChecked(), self.cbGruppe.currentIndex(),self.chk3DDar.isChecked(), self.chkGISDB.isChecked(),self.chkSHPexp.isChecked(), self.chkLeer.isChecked()
+
+        return Liste, self.chkDar.isChecked(),self.rBNeu.isChecked(), self.cbGruppe.currentIndex(),self.chk3DDar.isChecked(), self.chkGISDB.isChecked(),self.chkSHPexp.isChecked(), self.chkLeer.isChecked(), fObjKl, self.chkDarObjKl.isChecked()
    
-
+    def EZUCC7E8BA81F14493981479906904576A7(self,qry):
+        self.cbObjKlasse.clear
+        while (qry.next()):
+            self.cbObjKlasse.addItem(qry.value(1))
+        
     def EZU3B1BBFAC47624AEF82118DE7647883DE(self,rootname,qry):
         self.EZUB1A3A5F021794B749EB473C9B033A214 (rootname,qry)
         result = self.exec_()
@@ -413,7 +437,7 @@ class uiExplorer(QDialog, FORM_CLASS):
              return self.EZU06A3014A0EC345C9B52BC3ED5D2B05AA()
         else:
 
-            return None,None,None,None,None,None,None,None
+            return None,None,None,None,None,None,None,None,None,None
 
 
         

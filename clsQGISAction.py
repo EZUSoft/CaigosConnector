@@ -45,6 +45,8 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
+
 from osgeo import ogr 
 from qgis.utils import *
 
@@ -191,7 +193,7 @@ class clsQGISAction():
             newparent=False
         return ltgProjekt
         
-    def EZU9569D8F0E36C44ACB766DB0A73364BC3(self, AktDB, User, prjNameInTree, qry4pri, qry, bGenDar, bPrjNeu, iDarGruppe, b3DDar, bDBTab, bSHPexp, bLeer, OutOfQGIS=False):
+    def EZU9569D8F0E36C44ACB766DB0A73364BC3(self, AktDB, User, prjNameInTree, qry4pri, qry, bGenDar, bPrjNeu, iDarGruppe, b3DDar, bDBTab, bSHPexp, bLeer, intObjKlasse, bDarObjKl, OutOfQGIS=False):
         def EZU1797DF3F28734C58A62078E9471FB2D6(prgBar, msgBar, Step, Titel, Text):
 
             try:
@@ -215,7 +217,7 @@ class clsQGISAction():
 
         clsRendXML = clsRenderingByQML()
         ConnInfo=AktDB.EZUA098FD21021B43B78B52D0DC3130605D()
-        param=str(User)+";"+EZUC936D29251B44D4E994497BF023338C7(prjNameInTree)+";"+str(bGenDar)+";"+str(bPrjNeu)+";"+str(iDarGruppe)+";"+str(b3DDar)+";"+str(bDBTab)+";"+str(bSHPexp)+";"+ str(bLeer)+";"+str(OutOfQGIS)
+        param=str(User)+";"+EZUC936D29251B44D4E994497BF023338C7(prjNameInTree)+";"+str(bGenDar)+";"+str(bPrjNeu)+";"+str(iDarGruppe)+";"+str(b3DDar)+";"+str(bDBTab)+";"+str(bSHPexp)+";"+ str(bLeer)+";"+str(intObjKlasse)+";"+str(bDarObjKl)
         param=param.replace("False","F").replace("True","T")
         Epsg=EZU07A28165B1CC4CC09B4AC9235EA3E8E9()
         cgVersion = EZU1C1D2B936A1D475D8F4C176B585F2301()
@@ -282,13 +284,14 @@ class clsQGISAction():
                 else:
                     EZUC8DCB02F1A8145AF82C8A69A43E0529B("Fehler Tabellenzugriff (Tabelle:" + qry4priDBname + ", Matchcode: like '%%\_objid', Ebene: " + lName )
 
-            vlp, LastGeoTabSpalte = EZU494640CF7D9A43E19FD083B6B034293A (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp, refObjID)
+            vlp, LastGeoTabSpalte = EZU494640CF7D9A43E19FD083B6B034293A (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp, refObjID, intObjKlasse)
 
             if vlp:
 
                 
 
 
+                qmldat=None
                 Layer = QgsVectorLayer(vlp, lName , "postgres") 
                 if Layer.isValid():
                     Layer.setReadOnly() 
@@ -329,10 +332,10 @@ class clsQGISAction():
 
                                 if EZUC86841CA58BC4846B265D42D4397141D() < 21200 and qry4priLayerTyp == 3:
 
-                                    clsRendXML.EZUD5A9A7B19C594CD5AA23BB973E8B906D(AktDB, User, Layer, qry4priLayerTyp, qry4priLayerID, False, iDarGruppe)
+                                    clsRendXML.EZUD5A9A7B19C594CD5AA23BB973E8B906D(AktDB, User, Layer, qry4priLayerTyp, qry4priLayerID, False, iDarGruppe, bDarObjKl)
                                 else:                    
 
-                                    clsRendXML.EZUD5A9A7B19C594CD5AA23BB973E8B906D(AktDB, User, Layer, qry4priLayerTyp, qry4priLayerID, True, iDarGruppe)
+                                    clsRendXML.EZUD5A9A7B19C594CD5AA23BB973E8B906D(AktDB, User, Layer, qry4priLayerTyp, qry4priLayerID, True, iDarGruppe, bDarObjKl)
 
 
                                 if bSHPexp:

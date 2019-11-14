@@ -416,7 +416,7 @@ def EZUE2234C86576E4AFDBA184A9078854DDC(GISDBTabName, AktDB = None):
     if not AktDB: del (db)
     return (Antw)
 
-def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID):
+def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID, intObjKlasse):
 
 
     bDeltaTexte = True 
@@ -425,9 +425,11 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
         
     geoTabName=EZUBB35FE2AD3BE43C0BED5E2BB71976827(Art)
     if LayerID:
-        where="layerid='%s'" % (LayerID)
+        strWhere="layerid='%s'" % (LayerID)
+        if intObjKlasse != -1:
+            strWhere=strWhere + " AND objclass = %i" % (intObjKlasse)
     else:
-        where =""
+        strWhere =""
     
     if b3DDar:
         ken3D="Z"
@@ -466,10 +468,10 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
     if cgVersion == 0: 
         if Art == 0: 
             table=("%s(select *, st_setsrid(st_translate(shape, deltar, deltah),%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
+            uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)        
         if Art == 1: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 2: 
 
 
@@ -478,57 +480,57 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
             if EZUC86841CA58BC4846B265D42D4397141D()  < 21200:
                 uri=None
             else:
-                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
 
         if Art == 3: 
             sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
             table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 31: 
 
 
             sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
             table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 4: 
             uri = None
         if Art == 5: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)     
         if Art == 6: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
     else:
         if Art == 0: 
             table=("%s(select *, st_translate(shape, deltar, deltah) as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)        
+            uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)        
         if Art == 1: 
             table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 2: 
             table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as geom from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             if EZUC86841CA58BC4846B265D42D4397141D()  < 21200:
                 uri=None
             else:
-                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 3: 
             sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
             table=("%s(select *," + sShape  + " as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 31: 
 
 
             sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
             table=("%s(select *," + sShape  + " as geom from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 4: 
             uri = None
         if Art == 5: 
             table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)     
+            uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)     
         if Art == 6: 
             table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
-            uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, where)
+            uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
     return uri, LastGeoTabSpalte
     
 
@@ -548,14 +550,40 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
 
 
 
-
-def EZUAFAF458DCD164EA4A76CF69189C827B7( db, LayerID, cgUser):
-
-    sqlString=("select defid from prptable where layerid='%s' and usernr='%s'") %(LayerID, cgUser)
+def EZUBB67DB325F4F4F50AB72347B87373BAD (db, LayerID):
+    sqlString=("select  objclassindex  from loctable where layerid='%s'") % LayerID
     rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sqlString)
-    rs.next() 
-    Wert = rs.value(0)
-    del(rs)
+    Filter = ""
+
+    while (rs.next()):
+        Filter = Filter + "and objclass <> " + str(rs.value(0)) + " "
+    if Filter:
+        Filter=" AND (" + Filter[4:] + ")"
+
+    return Filter
+
+
+def EZUAFAF458DCD164EA4A76CF69189C827B7( db, LayerID, cgUser, iObjKlasse):
+
+
+
+    Wert=None
+    if iObjKlasse != -1:
+
+        sqlString=("select defid from loctable where layerid ='%s' and objclassindex=%i") %(LayerID, iObjKlasse)
+        rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sqlString)
+        rs.next()
+        if rs.value(0): Wert = rs.value(0)
+        del(rs)
+        print (str(iObjKlasse),Wert)
+    
+    if not Wert:
+        sqlString=("select defid from prptable where layerid='%s' and usernr='%s'") %(LayerID, cgUser)
+        rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sqlString)
+        rs.next() 
+        Wert = rs.value(0)
+        del(rs)
+    
     return Wert
 
 def EZUDCADB4666E944E57BEC334CD9635C33E (db,DefID):
@@ -619,7 +647,7 @@ def EZUCA7646F5CB604929B5B1138CDCC58756 (shpdat, bOnlyDarField, bNoGISDBIntern, 
 
     if bOnlyDarField: 
         for sp in schema:
-            if not sp in ["defid", "alpha", "pstext"]:
+            if not sp in ["defid", "alpha", "pstext", "objclass"]:
                 layer.DeleteField(laydef.GetFieldIndex(sp))
                 delAnz+=1 
             if sp == LastGeoTabSpalte:

@@ -28,6 +28,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 from qgis.core import *
 from qgis.gui import *
 from qgis.utils import *
@@ -238,7 +239,8 @@ class clsCaigosConnector:
         if db :
             qry = db.EZUDCF0989FCCB948B08C56317AE7037619(EZU97DD9229963D4C40BC10157CE31052F0()) 
             projekt=EZU0239CDC0875B4C7B837227F9004BC5D0()
-            guiListe, bGenDar, bPrjNeu, iGruppe, b3DDar, bDBTab, bSHPexp, bLeer = cls.EZU3B1BBFAC47624AEF82118DE7647883DE(projekt, qry)
+            cls.EZUCC7E8BA81F14493981479906904576A7(db.EZUDCF0989FCCB948B08C56317AE7037619(EZUF218A9CE2308409D9617A675D4D9DC80()))
+            guiListe, bGenDar, bPrjNeu, iGruppe, b3DDar, bDBTab, bSHPexp, bLeer, intObjKlasse, bDarObjKl = cls.EZU3B1BBFAC47624AEF82118DE7647883DE(projekt, qry)
             if guiListe:
                 InStr = "','".join(guiListe)
                 InStr = "'" + InStr + "'"
@@ -248,7 +250,7 @@ class clsCaigosConnector:
                 pri_gisdb = db.EZUDCF0989FCCB948B08C56317AE7037619(EZU8738A84187454718A9979A2226387046(User,InStr))
 
                 c = clsQGISAction()
-                c.EZU9569D8F0E36C44ACB766DB0A73364BC3(db,User,projekt,pri_gisdb,qry, bGenDar, bPrjNeu,iGruppe, b3DDar, bDBTab, bSHPexp, bLeer)
+                c.EZU9569D8F0E36C44ACB766DB0A73364BC3(db,User,projekt,pri_gisdb,qry, bGenDar, bPrjNeu,iGruppe, b3DDar, bDBTab, bSHPexp, bLeer, intObjKlasse, bDarObjKl)
 
 
         else:          

@@ -48,6 +48,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 import xml.etree.cElementTree as ET
 import xml.dom.minidom as dom
 import tempfile
@@ -856,7 +857,7 @@ def EZU9FE03FB711BE4A2C8B8130D9B8786C9F (eSettings,rsParam,art='e'):
     return eSettings    
 
 class clsRenderingByQML():      
-    def EZUD5A9A7B19C594CD5AA23BB973E8B906D(self, AktDB, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group): 
+    def EZUD5A9A7B19C594CD5AA23BB973E8B906D(self, AktDB, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group, bDarObjKl): 
 
         symNum=0
         
@@ -878,7 +879,13 @@ class clsRenderingByQML():
 
 
         if bRolle : 
-            rsAttDefs=db.EZUDCF0989FCCB948B08C56317AE7037619(EZU64C9598DF0AB4FADA28872A43F622D0A( cgEbenenTyp, LayerID))
+            if bDarObjKl:
+
+                fobjKlasse=EZUBB67DB325F4F4F50AB72347B87373BAD (db, LayerID)
+            else:
+                fobjKlasse=None
+            rsAttDefs=db.EZUDCF0989FCCB948B08C56317AE7037619(EZU64C9598DF0AB4FADA28872A43F622D0A( cgEbenenTyp, LayerID, bDarObjKl))
+
             if cgEbenenTyp == 3:
                 eRules = ET.SubElement(eLabeling,"rules")
             else:
@@ -889,12 +896,20 @@ class clsRenderingByQML():
 
             while (rsAttDefs.next()):
 
+                AktObjKl = rsAttDefs.value(2)
+                bIA = False
                 if rsAttDefs.value(0) == "{00000000-0000-0000-0000-000000000000}" or rsAttDefs.value(0) == NULL:
-                    AktDefID = EZUAFAF458DCD164EA4A76CF69189C827B7(db, LayerID, cgUser)
+                    AktDefID = EZUAFAF458DCD164EA4A76CF69189C827B7(db, LayerID, cgUser, rsAttDefs.value(2))
                     AktDefName=EZUDCADB4666E944E57BEC334CD9635C33E(db, AktDefID)
                 else:
                     AktDefID = rsAttDefs.value(0)
-                    AktDefName="IA:"+rsAttDefs.value(1)
+                    if rsAttDefs.value(2) == -1:
+                        bIA = True
+                        AktDefName="IA:"+rsAttDefs.value(1)
+                    else:
+                        AktDefName="OK" + str(rsAttDefs.value(2)) + ":" + rsAttDefs.value(1)
+
+                    
 
                 rsAtt=db.EZUDCF0989FCCB948B08C56317AE7037619(EZUE46C97B18D5843DFB7668B8846F26976(cgEbenenTyp, AktDefID, Group))
 
@@ -911,7 +926,19 @@ class clsRenderingByQML():
                 if rsAttDefs.value(0) == NULL:
                     qmap["filter"]= "defid is Null"
                 else:
-                    qmap["filter"]= "defid = '" + rsAttDefs.value(0) + "'"
+                    if bDarObjKl:
+                        if bIA:
+
+                            qmap["filter"]= "defid = '" + rsAttDefs.value(0) + "'"
+                        else:
+                            if AktObjKl != -1:
+                                qmap["filter"]= "defid = '{00000000-0000-0000-0000-000000000000}' AND objclass = " + str(AktObjKl)
+                            else:
+                                qmap["filter"]= "defid = '" + rsAttDefs.value(0) + "' " + fobjKlasse
+                    else:
+
+                        qmap["filter"]= "defid = '" + rsAttDefs.value(0) + "'"
+
                 if cgEbenenTyp == 3:
                     qmap["description"] = AktDefName
                 else:
@@ -1023,7 +1050,7 @@ class clsRenderingByQML():
 
 
 
-            AktDefID = EZUAFAF458DCD164EA4A76CF69189C827B7(db, LayerID, cgUser)
+            AktDefID = EZUAFAF458DCD164EA4A76CF69189C827B7(db, LayerID, cgUser, -1)
             AktDefName=EZUDCADB4666E944E57BEC334CD9635C33E(db, AktDefID)
             EZUECF30286359145F8A6FCFF9D953FB103( db, qLayer,AktDefID, Group)
 

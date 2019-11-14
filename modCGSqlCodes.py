@@ -21,6 +21,8 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
+
 def EZUBB35FE2AD3BE43C0BED5E2BB71976827 (Art):
     table=None
     if Art == 0: 
@@ -40,6 +42,9 @@ def EZUBB35FE2AD3BE43C0BED5E2BB71976827 (Art):
     if Art == 6: 
         table="polyssqlspatial"    
     return table
+
+def EZUF218A9CE2308409D9617A675D4D9DC80():
+    return "SELECT ('x' || (substr(id,6,4)))::bit(16)::int -1 as objKl,alias, visible FROM objclasstable order by objKl" 
 
 def EZU1B44A2C9E7584B0BAEB94E020A2B4139( LayerID):
     sSQL = (u"SELECT dbname  as Fachschale, entityname as Thema, groupname as Gruppe, layername as Layer " 
@@ -98,11 +103,20 @@ def EZU8738A84187454718A9979A2226387046(UserNum = '000', LayerList = None):
     "   ORDER BY priority DESC,layertyp ")
     return sSQL
 
-def EZU64C9598DF0AB4FADA28872A43F622D0A( Art, LayerID):
+def EZU64C9598DF0AB4FADA28872A43F622D0A( Art, LayerID, bDarObjKl):
 
     TabName=EZUBB35FE2AD3BE43C0BED5E2BB71976827(Art)
+    zSQL=""
+    if bDarObjKl:
+        zSQL=("UNION select DISTINCT defid,objclassindex as objklasse from loctable where layerid='%s' ") % (LayerID)
     if TabName:
-        return (u"SELECT DISTINCT %s.defid, COALESCE(defname, '        ') as sortdefname FROM %s LEFT JOIN deftable ON %s.defid =deftable.defid where layerid='%s' order by sortdefname") % (TabName,TabName,TabName,LayerID)
+        sSQL=(u"select DISTINCT ID.defid, COALESCE(defname, '        ') as sortdefname , ID.objklasse "
+               " FROM (select DISTINCT defid,-1 as objklasse from %s where layerid='%s' "
+               "     %s) as ID "
+               " LEFT JOIN deftable "
+               " ON ID.defid =deftable.defid "
+               " order by sortdefname") % (TabName,LayerID,zSQL)
+        return sSQL
     else:
         return None
   
@@ -178,6 +192,7 @@ def EZU492650E7B7434899B738F74CBB9FD56D( Art, AktAttID, Group):
     return sSQL
 
 if __name__ == "__main__":
+    print(EZUF218A9CE2308409D9617A675D4D9DC80())
     pass
 
 

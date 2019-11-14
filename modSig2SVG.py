@@ -27,6 +27,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 import os.path
 try:
     from fnc4all import *
@@ -179,8 +180,19 @@ def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDat, Fill=False):
 
 
                 v=iZeile.split(sTrenn)
-                fY= str(float(v[7]) - float( v[2]) * 0.9)           
-                oDatNum.write("<text x='" + v[6] + "' y='" + neg(fY, h)  + "'\n")
+
+                bZentr=(v[10]=='J') 
+                if bZentr:
+                    m=float(v[11])
+                    fX= str(w/2 - m/2)
+
+
+                    fY=  str(h/2 - float( v[2])/4)
+                else:
+                    fX= v[6]
+                    fY= str(float(v[7]) - float( v[2]) * 0.9)  
+
+                oDatNum.write("<text x='" + fX + "' y='" + neg(fY, h)  + "'\n")
                 oDatNum.write(("style='font-size:%spx;font-family:%s;fill:rgb(%s,%s,%s)'") % (v[2],v[1],v[3],v[4],v[5])) 
 
 
@@ -201,13 +213,14 @@ def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDat, Fill=False):
 
     
 if __name__ == "__main__":
+    test='j'
+    bZentr=(test=='J')
+    print (bZentr)
 
 
 
 
 
 
-
-        EZU0BAA4CE0798E48099454390EF2BC83A4()
  
 
