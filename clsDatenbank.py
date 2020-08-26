@@ -54,6 +54,11 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
+
+
+
+
 from osgeo import ogr 
 from qgis.core import *
 from qgis.utils import os, sys
@@ -88,6 +93,7 @@ import tempfile
 import sqlite3
 import locale
 import uuid
+from copy import deepcopy
 
 
 
@@ -99,43 +105,62 @@ class pgOpenDatabase():
     def __init__( self, service, host, port, dbname, uid, pwd):
         self.Fehler = None
 
-        self.ConNameByGIUD=str(uuid.uuid4())
-        self.QSqlDB = QSqlDatabase.addDatabase("QPSQL", self.ConNameByGIUD )
+        self.ConNameByGIUD="EZU"+str(uuid.uuid4())
+        self.iServer=EZU50464908A0F8417AA7B9045C4E9B1F6A()
+        if self.iServer == 0: 
+            self.QSqlDB = QSqlDatabase.addDatabase("QPSQL", self.ConNameByGIUD )
+            self.QSqlDB.setHostName(host)
+            self.QSqlDB.setDatabaseName(dbname)
 
 
-
-
-
-
-
-
-
+        if self.iServer == 1: 
+            self.QSqlDB = QSqlDatabase.addDatabase("QODBC", self.ConNameByGIUD )
+            self.QSqlDB.setDatabaseName('DRIVER={SQL Server};SERVER=%s;DATABASE=%s' % (host,dbname))
 
 
         
+        if int(port) < 1 : port=None
+        if (port) : self.QSqlDB.setPort(int(port))
+
+
+        self.QSqlDB.setUserName(uid)
+        self.QSqlDB.setPassword(pwd)    
+         
 
 
 
         self.uri = QgsDataSourceUri()
-        if service == "":
-            self.uri.setConnection( host, port, dbname, uid, pwd )
+        if self.iServer == 0:
+            if service == "":
+                self.uri.setConnection( host, port, dbname, uid, pwd )
+            else:
+                self.uri.setConnection(service, dbname, uid, pwd )
         else:
-            self.uri.setConnection(service, dbname, uid, pwd )
-        
-        self.QSqlDB.setConnectOptions( self.uri.connectionInfo() )
+
+            self.uri.setConnection( host, '', dbname, uid, pwd )
+
+        self.service=service;self.host=host;self.port=port; self.dbname=dbname;self.uid=uid;self.pwd=pwd
 
     
-    def EZUA098FD21021B43B78B52D0DC3130605D(self):
-        return self.uri.connectionInfo()
+    def EZU54EF9D72519A409CB2B9404C7A2012AC(self):
+        return self.ConNameByGIUD
+        
+    def EZU0E2BDADBE2194E8B8DF502B5EE42B12C(self):
+
+
+        antw=""
+        if self.service: antw=       "service='" + self.service + "' "
+        if self.port:    antw=antw + "port=" + self.port + " "
+        antw=antw + ("dbname='%s' host=%s user='%s' password='%s'") % (self.dbname, self.host, self.uid, self.pwd)
+        return (antw)
+
 
 
     def Open(self):
-        if not self.QSqlDB:
-            return None
         if self.QSqlDB.open():
             return self.QSqlDB
         else:
-            err = (u"pgOpenDatabase:"  + '\n' +
+            err = (u"Datenbank: " + self.dbname + '\n' +
             "Text: " + self.QSqlDB.lastError().text() +  '\n' +
             "Type: " + str(self.QSqlDB.lastError().type()) +  '\n' +
             "Number: " + str(self.QSqlDB.lastError().number()) )
@@ -144,6 +169,9 @@ class pgOpenDatabase():
 
     def EZU03F45B01171E465F835613DBEE097689(self):
         return self.Fehler
+    
+    def EZUCCB71BB19D114085A02FD5CFC412C1AB (self, SQLString):
+        return self.EZUDCF0989FCCB948B08C56317AE7037619 ( SQLString)   
     
     def EZUDCF0989FCCB948B08C56317AE7037619 (self, SQLString):
 
@@ -160,7 +188,7 @@ class pgOpenDatabase():
             "SQL: " + SQLString)
             self.Fehler =  (EZUC936D29251B44D4E994497BF023338C7(err))            
     
-    def EZU8011F18E65644E5D9231765F31D7EE19(self,idxVersion = None, EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
+    def EZU8011F18E65644E5D9231765F31D7EE19(self, idxVersion = None, EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
         Meldung =""; Fehler=""; Warnung = ""
         if not idxVersion:
             idxVersion = EZU1C1D2B936A1D475D8F4C176B585F2301()  
@@ -171,19 +199,25 @@ class pgOpenDatabase():
         if not CGProjektName:
             CGProjektName = EZU0239CDC0875B4C7B837227F9004BC5D0()      
         if not conninfo:
-            conninfo = self.EZUA098FD21021B43B78B52D0DC3130605D()
+            conninfo = self.EZU0E2BDADBE2194E8B8DF502B5EE42B12C()
         
 
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         if self.Open():
             Meldung= u"Datenbankverbindung erfolgreich"
-            if self.EZUDCF0989FCCB948B08C56317AE7037619("Select * from pointssqlspatial limit 1"):
+            if self.iServer == 0:
+                sSQL="Select * from pointssqlspatial limit 1"
+                sServer="PostgreSQL"
+            if self.iServer == 1:
+                sSQL="Select TOP 1 * from pointssqlspatial"
+                sServer="MSSQL"
+            if self.EZUDCF0989FCCB948B08C56317AE7037619(sSQL):
                 Meldung = Meldung + "\n" if Meldung else ""
-                Meldung = Meldung + u"CAIGOS Geodatentabelle in der Datenbank gefunden"
+                Meldung = Meldung + u"CAIGOS Geodatentabelle in der " + sServer + " Datenbank gefunden"
             else:
                 Fehler=Fehler + "\n" if Fehler else ""
-                Fehler=Fehler + u"Keine CAIGOS Geodatentabelle in der Datenbank gefunden:\n" + "\n"       
+                Fehler=Fehler + u"Keine CAIGOS Geodatentabelle in der " + sServer + " Datenbank gefunden:\n" + "\n"       
         else:
             Fehler= u"Datenbankverbindung schlug fehl:\n" + self.EZU03F45B01171E465F835613DBEE097689() + "\n"
         QApplication.restoreOverrideCursor()
@@ -228,18 +262,22 @@ class pgOpenDatabase():
         if self.QSqlDB:
             self.QSqlDB.close()
             del(self.QSqlDB)
-            QSqlDatabase.removeDatabase(self.ConNameByGIUD) 
+
 
 class pgCurrentDB(pgOpenDatabase):
     def __init__( self ):
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
-        service = s.value( "service", "" )
-        host    = s.value( "host", "localhost" )
-        port    = s.value( "port", "5432" )
-        dbname  = s.value( "dbname", "cgTestProjekt" )
-        uid     = s.value( "uid", "caigos" )
-        pwd     = s.value( "pwd", "*****" )
+        service = s.value( "service", "#undef#" )
+        host    = s.value( "host", "#undef#" )
+        port    = s.value( "port", "-1" )
+        dbname  = s.value( "dbname", "#undef#" )
+        uid     = s.value( "uid", "#undef#" )
+        pwd     = s.value( "pwd", "#undef#" )
+
         pgOpenDatabase.__init__( self, service, host, port, dbname, uid, pwd)
+
+
+
         pgOpenDatabase.Open(self)
 
         
@@ -270,6 +308,8 @@ def EZU027799A0458943EEB71284D19BAA3FE5 (sqlStringMitEinemFeld, OffeneDB = None,
 
 
 
+
+        
 def EZU1C1D2B936A1D475D8F4C176B585F2301():
     s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     try:
@@ -293,14 +333,16 @@ def EZU07A28165B1CC4CC09B4AC9235EA3E8E9():
         return None
 
 def EZUA6B299741D5D4E39B1F0ADB88AD47F18():
+    if EZUC86841CA58BC4846B265D42D4397141D() > 30400:
+        return None 
+    else:
 
 
-    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
-    if s.value( "bSHPexp") == "Ja": 
-        return s.value("txtSHPDir") + '/'
-    else:      
-        return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + EZU0239CDC0875B4C7B837227F9004BC5D0() + '/'
-
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+        if s.value( "bSHPexp") == "Ja" or s.value( "bGPKGexp") == "Ja": 
+            return s.value("txtSHPDir") + '/'
+        else:      
+            return tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}/" + 'projekt_svg' + '/' + EZU0239CDC0875B4C7B837227F9004BC5D0() + '/'      
 
 def EZUEA8B6496E4A94763B4DE5BCE67BA0F14():
     s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
@@ -344,6 +386,49 @@ def EZU7F7DA500B4FF409BB13A35E5F7EC2E59(LayerID, AktDB = None):
     if not AktDB: del (db1)
     return ausg
 
+def EZU9DD5AC20610A46EE8937B45F9C5095C1 (LayerID, GeoTabName,  AktDB = None):
+
+    keynum=1
+    if AktDB:
+        db=AktDB
+    else:
+        db = pgCurrentDB()
+
+    sSQL=("SELECT  ok_subnr as keynum " 
+          "FROM odbkeystable as o INNER JOIN (lyrtable as l JOIN frametbltable as f ON l.tblid = f.ft_id) ON o.ok_idft = l.tblid "
+          "WHERE layerid='%s' AND odbused='J'") % LayerID
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619(sSQL)
+    keyList=[]
+    Found=False
+    while (rs.next()) :
+
+        keyList.append ('%0.2d' % (rs.value(0)))
+
+    if len(keyList) == 0:
+
+        del rs
+        if not AktDB: del (db)
+        return None,None
+    
+
+    rs = db.EZUDCF0989FCCB948B08C56317AE7037619("select column_name from information_schema.columns where table_name='" + GeoTabName + "'")
+    LastGeoTabSpalte = ""
+    while (rs.next()) :
+        LastGeoTabSpalte = rs.value(0)
+    
+    sSQL="select objid as key_objid"
+
+
+
+
+  
+    for key in keyList:
+        sSQL = sSQL + (", array_to_string(array_agg(case when ident = '%s' then value else NULL end),',') as key%s") % (key,key)
+    sSQL=sSQL + " FROM odbtable group by objid"
+
+    return sSQL, LastGeoTabSpalte
+    
+    
 def EZU624FEDF4E3654DEBA88006DC55E937C2 (TabName, GeoTabName, AktDB = None):
 
 
@@ -352,6 +437,7 @@ def EZU624FEDF4E3654DEBA88006DC55E937C2 (TabName, GeoTabName, AktDB = None):
         db=AktDB
     else:
         db = pgCurrentDB()
+    
 
     geoFList=[]
     rs = db.EZUDCF0989FCCB948B08C56317AE7037619("select column_name from information_schema.columns where table_name='" + GeoTabName + "'")
@@ -391,6 +477,22 @@ def EZU728F99262A784CE298F08321DF84E81D(GISDBTabName, AktDB = None):
         db = pgCurrentDB()
 
     sDB=GISDBTabName.lower()
+    sSQL=("SELECT True FROM pg_tables WHERE tablename = '%s'")%(sDB)
+    rs=db.EZUDCF0989FCCB948B08C56317AE7037619(sSQL)
+    Antw=rs.size()==1
+    del rs
+    if not AktDB: del (db)
+    return (Antw) 
+
+def EZUCBFEA090E43A4131AD9D3EB9E69F0F02(GISDBTabName, AktDB = None):
+
+
+    if AktDB:
+        db=AktDB
+    else:
+        db = pgCurrentDB()
+
+    sDB=GISDBTabName.lower()
 
     sSQL=("SELECT True FROM pg_attribute WHERE attrelid = (SELECT oid FROM pg_class WHERE relname = '%s') AND attname like '%%\\\_objid'")%(sDB)
     rs=db.EZUDCF0989FCCB948B08C56317AE7037619(sSQL)
@@ -398,7 +500,7 @@ def EZU728F99262A784CE298F08321DF84E81D(GISDBTabName, AktDB = None):
     del rs
     if not AktDB: del (db)
     return (Antw) 
-
+    
 def EZUE2234C86576E4AFDBA184A9078854DDC(GISDBTabName, AktDB = None):
     if AktDB:
         db=AktDB
@@ -416,10 +518,12 @@ def EZUE2234C86576E4AFDBA184A9078854DDC(GISDBTabName, AktDB = None):
     if not AktDB: del (db)
     return (Antw)
 
-def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID, intObjKlasse):
+def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar , GISDbTab, cgVersion, bShape, refObjID, intObjKlasse, bMSSQLqry):
 
 
     bDeltaTexte = True 
+    iServer=EZU50464908A0F8417AA7B9045C4E9B1F6A() 
+    
     uri = None
     LastGeoTabSpalte=None
         
@@ -436,19 +540,25 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
     else:    
         ken3D=""
     
-
-    if GISDbTab:
+    sqlZusatz=""
+    if (GISDbTab and (Art != 31)): 
+        sql4GISDB, LastGeoTabSpalte = EZU624FEDF4E3654DEBA88006DC55E937C2(GISDbTab,geoTabName)
         if bShape:
 
 
-            sql4GISDB, LastGeoTabSpalte = EZU624FEDF4E3654DEBA88006DC55E937C2(GISDbTab,geoTabName)
             sql4GISDB.replace("\\","")
             sqlZusatz = (' left join (%s) as gtab on %s.objid = gtab.objidgistab') % (sql4GISDB,geoTabName)
         else:
             sqlZusatz = (' left join %s  on %s.objid = %s.%s') % (GISDbTab,geoTabName,GISDbTab,refObjID)
 
-    else:
-        sqlZusatz=""
+
+
+
+
+
+
+
+
     
     if EZUC86841CA58BC4846B265D42D4397141D() < 21200: 
 
@@ -458,10 +568,8 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
     else:
         IndexGen1 =''
         IndexGen2 =''
-        Key="objid"
-    
-
-
+        if iServer == 0: Key="objid"
+        if iServer == 1: Key="ezu_id" 
     
 
 
@@ -469,19 +577,17 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
         if Art == 0: 
             table=("%s(select *, st_setsrid(st_translate(shape, deltar, deltah),%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)        
+
+        
         if Art == 1: 
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 2: 
-
-
-
             table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             if EZUC86841CA58BC4846B265D42D4397141D()  < 21200:
                 uri=None
             else:
                 uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
-
         if Art == 3: 
             sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
             table=("%s(select *,st_setsrid(" + sShape  + " ,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
@@ -498,38 +604,81 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
             table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)     
         if Art == 6: 
-            table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *,st_setsrid(shape,%d) as sid_shape from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                table=("%s(select *,               shape as sid_shape from %s %s)%s") % (IndexGen1,     geoTabName,sqlZusatz,IndexGen2)
             uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(sid_shape) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
     else:
         if Art == 0: 
-            table=("%s(select *, st_translate(shape, deltar, deltah) as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *, st_translate(shape, deltar, deltah) as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                if bMSSQLqry == True:
+                    table="ezu_qry_points4qgis"
+                else:
+                    table=geoTabName
+            
             uri=("%s key='%s' srid=%s type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)        
         if Art == 1: 
-            table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                if bMSSQLqry == True:
+                    table="ezu_qry_points4qgis"
+                else:
+                    table=geoTabName
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 2: 
             table=("%s(select *,st_setsrid('CurvePolygon(' || array_to_string( array_append( array_append((string_to_array(ST_AsText(shape),','))[1:3], substring((string_to_array(ST_AsText(shape),','))[5], 1,length((string_to_array(ST_AsText(shape),','))[5])-1)),(string_to_array( substring(ST_AsText(shape),19),','))[1]),',') || '))',%d) as geom from %s %s)%s") % (IndexGen1,Epsg,geoTabName,sqlZusatz,IndexGen2)
             if EZUC86841CA58BC4846B265D42D4397141D()  < 21200:
                 uri=None
             else:
-                uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
+                if iServer == 0:
+                    uri=("%s key='%s' srid=%d type=CurvePolygon%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
+                else:
+                    uri=None
         if Art == 3: 
             sShape = "st_translate(shape, deltar, deltah)" if bDeltaTexte else "shape"
-            table=("%s(select *," + sShape  + " as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *," + sShape  + " as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                if bMSSQLqry == True:
+                    table="ezu_qry_textedelta4qgis" if bDeltaTexte else "ezu_qry_texte4qgis"
+                else:
+                    table=geoTabName
             uri=("%s key='%s' srid=%d type=Point%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 31: 
 
 
             sShape = "st_makeline(shape, st_translate(shape, deltar, deltah))"
-            table=("%s(select *," + sShape  + " as geom from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *," + sShape  + " as geom from %s %s WHERE isdelta = 'J' and (deltar * deltah) != 0)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                if bMSSQLqry == True:
+                    table="ezu_qry_texteref4qgis"
+                else:
+                    table=None
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
         if Art == 4: 
             uri = None
         if Art == 5: 
-            table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                if bMSSQLqry == True:
+                    table="ezu_qry_polylines4qgis"
+                else:
+                    table=geoTabName
             uri=("%s key='%s' srid=%d type=LineString%s table=\"%s\" (geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)     
         if Art == 6: 
-            table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            if iServer == 0:
+                table=("%s(select *,shape as geom from %s %s)%s") % (IndexGen1,geoTabName,sqlZusatz,IndexGen2)
+            else:
+                if bMSSQLqry == True:
+                    table="ezu_qry_polys4qgis"
+                else:
+                    table=geoTabName
             uri=("%s key='%s' srid=%d type=MultiPolygon%s table=\"%s\"(geom) sql=%s") % (ConnInfo, Key, Epsg, ken3D, table, strWhere)
     return uri, LastGeoTabSpalte
     
@@ -575,7 +724,7 @@ def EZUAFAF458DCD164EA4A76CF69189C827B7( db, LayerID, cgUser, iObjKlasse):
         rs.next()
         if rs.value(0): Wert = rs.value(0)
         del(rs)
-        print (str(iObjKlasse),Wert)
+
     
     if not Wert:
         sqlString=("select defid from prptable where layerid='%s' and usernr='%s'") %(LayerID, cgUser)
@@ -607,7 +756,40 @@ def EZUD50D8C51F08C4A5EA7A344E41666D439(db,LayerID, cgUser):
     del(rs)
     return Wert
 
+def EZU15346725D7EC4BE49A8C7B6A48FC2454 (schema, bOnlyDarField, bNoGISDBIntern, LastGeoTabSpalte, GISDBTabName):
+
+
+    idxFields=[]
+    for i in range(len(schema)):
+        idxFields.append(i)
+                
+    if bNoGISDBIntern and GISDBTabName != None: 
+        GISDBTabName=GISDBTabName.upper()
+        for sp in schema:
+            if sp.upper() in [GISDBTabName+"_id".upper(), GISDBTabName+"_objid".upper(), GISDBTabName+"_pmfmark".upper(),
+                    GISDBTabName+"_pmfkey".upper(), GISDBTabName+"_datestampnew".upper(), GISDBTabName+"_timestampnew".upper(),
+                    GISDBTabName+"_datestampedit".upper(), GISDBTabName+"_timestampedit".upper()]:
+                idxFields[schema.index(sp)] = -1 
+
+                
+
+    if bOnlyDarField: 
+
+        for sp in schema:
+            if not sp.upper() in ["defid".upper(), "alpha".upper(), "pstext".upper(), "objclass".upper()]:
+                idxFields[schema.index(sp)] = -1 
+                
+
+            if LastGeoTabSpalte: 
+                if sp.upper() == LastGeoTabSpalte.upper():break 
+    Antw=[]
+    for sp in idxFields:
+        if sp != -1: Antw.append(sp)
+    return Antw
+    
 def EZUCA7646F5CB604929B5B1138CDCC58756 (shpdat, bOnlyDarField, bNoGISDBIntern, LastGeoTabSpalte, likeShpDat = None, negativliste=None, positivliste=None):
+
+
     paramanz=0
     if likeShpDat: paramanz+=1
     if negativliste: paramanz+=1
@@ -645,9 +827,10 @@ def EZUCA7646F5CB604929B5B1138CDCC58756 (shpdat, bOnlyDarField, bNoGISDBIntern, 
                     delAnz+=1 
                 
 
+
     if bOnlyDarField: 
         for sp in schema:
-            if not sp in ["defid", "alpha", "pstext", "objclass"]:
+            if not sp.upper() in ["defid".upper(), "alpha".upper(), "pstext".upper(), "objclass".upper()]:
                 layer.DeleteField(laydef.GetFieldIndex(sp))
                 delAnz+=1 
             if sp == LastGeoTabSpalte:
@@ -682,7 +865,93 @@ def EZUCA7646F5CB604929B5B1138CDCC58756 (shpdat, bOnlyDarField, bNoGISDBIntern, 
     return delAnz
     
 if __name__ == "__main__":
-    dummy=1
+
+    app = QApplication(sys.argv)
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+
+    server=0;host='vm091';port='5432';dbname='cgRISZwickau';uid='caigos';pwd='*****'
+
+    db=pgCurrentDB()
+    db.Open()
+
+    print (EZU728F99262A784CE298F08321DF84E81D("D4U36VERKMOD"))
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -37,6 +37,7 @@ except:
     from .fnc4CaigosConnector import *
 import re
 import codecs
+import base64
 
 
 def EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (VerzNam, Rekursiv=False):
@@ -57,7 +58,7 @@ def EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (VerzNam, Rekursiv=False):
         return False
 
     
-def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDat, Fill=False):
+def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDatOrBase64, Fill=False):
 
 
     if not os.path.isfile(qDat): 
@@ -117,6 +118,10 @@ def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDat, Fill=False):
         
 
 
+        if zDatOrBase64:
+            zDat = zDatOrBase64
+        else:
+            zDat = tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}.svg"
         oDatNum = codecs.open(zDat,"w",'utf-8')
         z=0
         sTrenn = "@"
@@ -205,7 +210,14 @@ def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDat, Fill=False):
         oDatNum.write("</svg>")
         iDatNum.close()
         oDatNum.close()
-
+        if zDatOrBase64:
+            return None
+        else:
+            dat = open(zDat, 'rb')
+            cont = dat.read()
+            dat.close()
+            return "base64:" + base64.b64encode(cont).decode()
+        
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

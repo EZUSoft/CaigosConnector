@@ -47,6 +47,10 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
+
+
+
 from osgeo import ogr 
 from qgis.utils import *
 
@@ -97,11 +101,14 @@ class clsQGISAction():
         
     def EZUFC52B0BB0EB14DA582CD889C9683B298(self):
 
-        LayerList = QgsMapLayerRegistry.instance().mapLayers()
-        for layer in LayerList:
-            if myqtVersion == 4:
+
+        if myqtVersion == 4:
+            LayerList = QgsMapLayerRegistry.instance().mapLayers()
+            for layer in LayerList:
                 QgsMapLayerRegistry.instance().removeMapLayer(layer)
-            else:
+        else:
+            LayerList = QgsProject.instance().mapLayers()
+            for layer in LayerList:
                 QgsProject.instance().removeMapLayer(layer)
  
     def EZU36EB5B0BF324447DB03DB38A6DBEC31E(self, NameOfGroup):
@@ -191,9 +198,10 @@ class clsQGISAction():
             Thema=qry.value(1)
             Gruppe=qry.value(2)
             newparent=False
+            
         return ltgProjekt
         
-    def EZU9569D8F0E36C44ACB766DB0A73364BC3(self, AktDB, User, prjNameInTree, qry4pri, qry, bGenDar, bPrjNeu, iDarGruppe, b3DDar, bDBTab, bSHPexp, bLeer, intObjKlasse, bDarObjKl, OutOfQGIS=False):
+    def EZU9569D8F0E36C44ACB766DB0A73364BC3(self, AktDB, User, prjNameInTree, qry4pri, qry, bGenDar, bPrjNeu, iDarGruppe, b3DDar, bDBTab, intExport, bLeer, intObjKlasse, bDarObjKl, OutOfQGIS=False):
         def EZU1797DF3F28734C58A62078E9471FB2D6(prgBar, msgBar, Step, Titel, Text):
 
             try:
@@ -206,18 +214,61 @@ class clsQGISAction():
                 QMessageBox.critical( None, "Abbruch","Vorgang dort durch Nutzereingriff beendet")
                 return False
         idxLayer = -1
-        if bSHPexp:
+
+        bSHPexp = (intExport==1)
+        bGPKGexp = (intExport==2)
+        if bSHPexp or bGPKGexp:
             s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
             bSaveDar = True if s.value( "bSaveDar", "Ja" )  == "Ja"   else False
             bOnlyDarField = True if s.value( "bOnlyDarField", "Ja" )  == "Ja"   else False
             bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
             txtCodePage = s.value( "txtCodePage", 0)
-            txtZielPfad = s.value( "txtSHPDir", "" )
+            txtZielPfadOrDatei = s.value( "txtSHPDir", "" )
+        
+        if bGPKGexp:
+
+
+
+            zielDatGPKG=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfadOrDatei + "/" + prjNameInTree +".gpkg")
+            if (os.path.exists(zielDatGPKG)):
+                s=u"Die GPKG-Datei \n'" + zielDatGPKG + u"'\n exisiert bereits. \nKann diese überschrieben werden?"
+                reply = QMessageBox.question(None, u"Geopackkage löschen", s, QMessageBox.Yes |  QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+
+
+                        rNode=QgsProject.instance().layerTreeRoot()   
+                        for node in rNode.children(): 
+                            if str(type(node))  == "<class 'qgis._core.QgsLayerTreeGroup'>":
+                                if node.name() == prjNameInTree: 
+                                    def EZUF0A7C2A1C9C842DBA4063449DC40EA81(node):
+                                        for child in node.children():
+                                            if isinstance(child, QgsLayerTreeLayer):
+                                                if myqtVersion == 4:
+                                                    QgsMapLayerRegistry.instance().removeMapLayer(child.layer())
+                                                else:
+                                                    QgsProject.instance().removeMapLayer(child.layer())
+                                            if str(type(child))  == "<class 'qgis._core.QgsLayerTreeGroup'>":
+                                                EZUF0A7C2A1C9C842DBA4063449DC40EA81(child)
+                                    EZUF0A7C2A1C9C842DBA4063449DC40EA81(node)
+                                    
+                                    
+                                    
+                        try:    
+
+                            os.remove(zielDatGPKG)
+                        except OSError as e:  
+                            s= u"Datei Löschfehler %s \n%s.\n\nVermutlich sind aktuell Layer aus diesem GeoPackage in QGIS eingebunden." % (e.filename,e.strerror)
+                            QMessageBox.critical(None, u"Die Datei konnte nicht gelöscht werden.", s)
+                            return None
+                else:
+                    QMessageBox.critical(None, u"Nichts zu tun", u"Vorgang wurde abgebrochen.")
+                    return None
             
 
         clsRendXML = clsRenderingByQML()
-        ConnInfo=AktDB.EZUA098FD21021B43B78B52D0DC3130605D()
-        param=str(User)+";"+EZUC936D29251B44D4E994497BF023338C7(prjNameInTree)+";"+str(bGenDar)+";"+str(bPrjNeu)+";"+str(iDarGruppe)+";"+str(b3DDar)+";"+str(bDBTab)+";"+str(bSHPexp)+";"+ str(bLeer)+";"+str(intObjKlasse)+";"+str(bDarObjKl)
+        ConnInfo=AktDB.EZU0E2BDADBE2194E8B8DF502B5EE42B12C()
+
+        param=str(EZU51B3FDFA62764BDA9B7CED2681A70937())+";"+str(User)+";"+EZUC936D29251B44D4E994497BF023338C7(prjNameInTree)+";"+str(bGenDar)+";"+str(bPrjNeu)+";"+str(iDarGruppe)+";"+str(b3DDar)+";"+str(bDBTab)+";"+str(bSHPexp)+";"+ str(bLeer)+";"+str(intObjKlasse)+";"+str(bDarObjKl)
         param=param.replace("False","F").replace("True","T")
         Epsg=EZU07A28165B1CC4CC09B4AC9235EA3E8E9()
         cgVersion = EZU1C1D2B936A1D475D8F4C176B585F2301()
@@ -231,7 +282,7 @@ class clsQGISAction():
         step=0
 
         GesAnz = qry4pri.size()
-        if bSHPexp: 
+        if bSHPexp or bGPKGexp: 
             GesAnz = GesAnz * 2 
         GesAnz = GesAnz + 1
         msgBar = iface.messageBar().createMessage("...")
@@ -242,7 +293,7 @@ class clsQGISAction():
         prgBar.setMaximum(GesAnz)           
         msgBar.layout().addWidget(prgBar)
         iface.messageBar().pushWidget(msgBar, 0) 
-        
+
 
 
 
@@ -255,11 +306,6 @@ class clsQGISAction():
             qry4priLayerTyp=qry4pri.value(2)
             qry4priDBname=qry4pri.value(3)
 
-            try:
-                i=i+1
-
-            except:
-                pass
 
             step = step + 1
             if not EZU1797DF3F28734C58A62078E9471FB2D6(prgBar, msgBar, step, "Laden", qry4priEbene):
@@ -279,12 +325,16 @@ class clsQGISAction():
             lName=EZU9A25B96EF34E432F8B39C40EA0D860A6(qry4priEbene) 
             if bDBTab and qry4priDBname:
                 if EZU728F99262A784CE298F08321DF84E81D(qry4priDBname):
-                    GISDBTabName=qry4priDBname.lower()
-                    refObjID=EZUE2234C86576E4AFDBA184A9078854DDC(qry4priDBname)
+                    if EZUCBFEA090E43A4131AD9D3EB9E69F0F02(qry4priDBname):
+                        GISDBTabName=qry4priDBname.lower()
+                        refObjID=EZUE2234C86576E4AFDBA184A9078854DDC(qry4priDBname)
+                    else:
+                        EZUC8DCB02F1A8145AF82C8A69A43E0529B("Fehler Tabellenzugriff (Tabelle:" + qry4priDBname + ", Matchcode: like '%%\_objid', Ebene: " + lName )
                 else:
-                    EZUC8DCB02F1A8145AF82C8A69A43E0529B("Fehler Tabellenzugriff (Tabelle:" + qry4priDBname + ", Matchcode: like '%%\_objid', Ebene: " + lName )
+                    EZUC8DCB02F1A8145AF82C8A69A43E0529B("Tabelle:" + qry4priDBname + " nicht gefunden (Ebene: " + lName +")")
 
-            vlp, LastGeoTabSpalte = EZU494640CF7D9A43E19FD083B6B034293A (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp, refObjID, intObjKlasse)
+            
+            vlp, LastGeoTabSpalte = EZU494640CF7D9A43E19FD083B6B034293A (qry4priLayerTyp,ConnInfo,Epsg, qry4priLayerID,b3DDar, GISDBTabName, cgVersion, bSHPexp, refObjID, intObjKlasse, True)
 
             if vlp:
 
@@ -292,23 +342,107 @@ class clsQGISAction():
 
 
                 qmldat=None
-                Layer = QgsVectorLayer(vlp, lName , "postgres") 
+
+
+
+
+
+
+                
+
+
+
+                
+                if (EZU50464908A0F8417AA7B9045C4E9B1F6A()) == 0:
+                    Layer = QgsVectorLayer(vlp, lName , "postgres")
+                if (EZU50464908A0F8417AA7B9045C4E9B1F6A()) == 1: 
+
+                    if myqtVersion == 4:
+                        crsRegParam4NewLayer1='/Projections/defaultBehaviour'
+                        crsRegParam4NewLayer2=crsRegParam4NewLayer1
+                    else:
+                        crsRegParam4NewLayer1='/Projections/defaultBehavior' 
+                        crsRegParam4NewLayer2='/app/projections/unknownCrsBehavior'
+
+
+
+
+
+                        m1=QSettings().value(crsRegParam4NewLayer1)
+                        m2=QSettings().value(crsRegParam4NewLayer2)
+
+                        mcrs=QSettings().value('/Projections/layerDefaultCrs')
+                        QSettings().setValue('/Projections/layerDefaultCrs',"EPSG:" + str(EZU07A28165B1CC4CC09B4AC9235EA3E8E9()))
+                        QSettings().setValue(crsRegParam4NewLayer1,'UseDefaultCrs')
+                        QSettings().setValue(crsRegParam4NewLayer2,'UseDefaultCrs')
+
+                        Layer = QgsVectorLayer(vlp, lName , "mssql") 
+                        iface.messageBar().clearWidgets() 
+                        iface.messageBar().pushMessage("Hinweis","Lade " + lName)
+                        
+
+
+                        QSettings().setValue(crsRegParam4NewLayer1,m1)
+                        QSettings().setValue(crsRegParam4NewLayer2,m2)
+                        QSettings().setValue('/Projections/layerDefaultCrs',mcrs)
+                        m1=QSettings().value(crsRegParam4NewLayer1)
+                        m2=QSettings().value(crsRegParam4NewLayer2)
+
+                
+                if bGPKGexp or bSHPexp: step = step + 1
+                
+
                 if Layer.isValid():
+                    if bGPKGexp or bSHPexp:
+                        if not EZU1797DF3F28734C58A62078E9471FB2D6(prgBar, msgBar, step, "Speichern", qry4priEbene):
+                            break
                     Layer.setReadOnly() 
                     if bLeer or Layer.featureCount() > 0:
+                        if bGPKGexp:
+
+                            options = QgsVectorFileWriter.SaveVectorOptions()
+                            options.driverName='GPKG' 
+                            if os.path.exists(zielDatGPKG):
+                                options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+                            else:
+                                options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile 
+                            options.layerName = lName
+                            
+                            if bOnlyDarField or bNoGISDBIntern:
+
+                                fieldList=[field.name() for field in Layer.fields()]
+                                options.attributes=EZU15346725D7EC4BE49A8C7B6A48FC2454 (fieldList, bOnlyDarField, bNoGISDBIntern, LastGeoTabSpalte, GISDBTabName)
+                            
+                            
+                            Antw=QgsVectorFileWriter.writeAsVectorFormat(Layer, zielDatGPKG, options) 
+
+                            if type(Antw) != tuple:
+                                Antw = Antw , "Fehler beim EZU0F29DFD759404DC0AD7127E7983E3254 von "  + lName 
+                            if Antw[0] != 0:
+                                EZUC8DCB02F1A8145AF82C8A69A43E0529B(Antw[1])
+                            
+
+                            del(Layer) 
+                            
+
+                            if not EZU1797DF3F28734C58A62078E9471FB2D6(prgBar, msgBar, step, u"Anfügen", qry4priEbene):
+                                break
+                            Layer = QgsVectorLayer(zielDatGPKG + '|layername='+lName,lName, "ogr")
+                            Layer.setProviderEncoding(txtCodePage)
+                            Layer.dataProvider().setEncoding(txtCodePage) 
+
                         if bSHPexp:
 
 
 
 
-                            step = step + 1
-                            
-                            if not EZU1797DF3F28734C58A62078E9471FB2D6(prgBar, msgBar, step, "Speichern", qry4priEbene):
-                                break
-                            if  self.EZU03023EF7FCAA442486B6AF6B66E6DC95 (txtZielPfad + "/" + lName +".shp"):
-                                pShp=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfad + "/" + lName +".shp")
-                                qmldat=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfad + "/" + lName +".qml")
+                            if  self.EZU03023EF7FCAA442486B6AF6B66E6DC95 (txtZielPfadOrDatei + "/" + lName +".shp"):
+                                pShp=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfadOrDatei + "/" + lName +".shp")
+                                qmldat=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfadOrDatei + "/" + lName +".qml")
+                                
+
                                 QgsVectorFileWriter.writeAsVectorFormat(Layer,pShp,txtCodePage,Layer.crs(),"ESRI Shapefile")
+                                 
                                 del(Layer) 
 
                                 if bOnlyDarField or bNoGISDBIntern:
@@ -324,7 +458,7 @@ class clsQGISAction():
                                 Layer.setProviderEncoding(txtCodePage)
                                 Layer.dataProvider().setEncoding(txtCodePage) 
                             else:
-                                EZUC8DCB02F1A8145AF82C8A69A43E0529B("'"+ txtZielPfad + "/" + lName + ".shp' wurde nicht erzeugt!")
+                                EZUC8DCB02F1A8145AF82C8A69A43E0529B("'"+ txtZielPfadOrDatei + "/" + lName + ".shp' wurde nicht erzeugt!")
 
                         if Layer.isValid():
                             if bGenDar: 
@@ -341,7 +475,15 @@ class clsQGISAction():
                                 if bSHPexp:
                                     if bSaveDar:
                                         Layer.saveNamedStyle (qmldat)
+                                if bGPKGexp:
+                                    if bSaveDar:
 
+
+
+                                        try: 
+                                            Layer.saveStyleToDatabase(options.layerName,'Aus CAIGOS Export',True,options.layerName, '#FEHLER# saveStyleToDatabase:' + options.layerName)
+                                        except:
+                                            Layer.saveStyleToDatabase(options.layerName,'Aus CAIGOS Export',True,options.layerName)
 
 
                             AktFachschale, AktThema, AktGruppe, AktLayer = EZU7F7DA500B4FF409BB13A35E5F7EC2E59(qry4priLayerID, AktDB)
@@ -356,7 +498,10 @@ class clsQGISAction():
                             g = g.findGroup(AktGruppe)
                             g.insertLayer(0, Layer)
                         else:
-                            EZUC8DCB02F1A8145AF82C8A69A43E0529B("Fehler Layerkonvertierung nach Shape: " + pShp + '|' + lName + "|ogr" )
+                            if bGPKGexp:
+                                EZUC8DCB02F1A8145AF82C8A69A43E0529B("Fehler Layerkonvertierung nach GeoPackage: " + zielDatGPKG + '|layername='+lName )
+                            if bSHPexp:
+                                EZUC8DCB02F1A8145AF82C8A69A43E0529B("Fehler Layerkonvertierung nach Shape: " + pShp + '|' + lName + "|ogr" )
 
                 else:
                     if not (lName[-4:] == "(RL)" and EZUC86841CA58BC4846B265D42D4397141D() < 21200):
@@ -366,19 +511,19 @@ class clsQGISAction():
                         debuglog (vlp + "|" + lName  + "|" + "postgres")
             else:
                 EZUC8DCB02F1A8145AF82C8A69A43E0529B(u"Nicht unterstützt Typ " + str(qry4priLayerTyp) + ": " + lName)
-        
-        if bSHPexp:
+
+        if bSHPexp or bGPKGexp:
             if bSaveDar:
                 if myqtVersion == 5:
-                    substPrjPath=txtZielPfad
+                    substPrjPath=txtZielPfadOrDatei
                 else:
-                    substPrjPath=txtZielPfad.encode('utf8')
+                    substPrjPath=txtZielPfadOrDatei.encode('utf8')
                 
 
 
 
                 tmpDat=tempfile.gettempdir() + "/{D5E6A1F8-392F-4241-A0BD-5CED09CFABC7}.qlr"
-                qlrDat=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfad + "/00-" + prjNameInTree + ".qlr")
+                qlrDat=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfadOrDatei + "/00-" + prjNameInTree + ".qlr")
                 QgsLayerDefinition.exportLayerDefinition(tmpDat,[ltgProjekt])
                 EZUAC460E6F0D4B49ABBAC60E8D53FD6A34(tmpDat, qlrDat, substPrjPath) 
                 
@@ -387,13 +532,13 @@ class clsQGISAction():
 
                 QgsProject.instance().setFileName(tmpDat)
                 QgsProject.instance().write()
-                qgsDat=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfad + "/00-" + prjNameInTree + ".qgs")
+                qgsDat=EZUE7D17250C3C7421C9D8813540A672DFC(txtZielPfadOrDatei + "/00-" + prjNameInTree + ".qgs")
                 EZUAC460E6F0D4B49ABBAC60E8D53FD6A34(tmpDat, qgsDat, substPrjPath) 
 
         try:
             s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
             if (s.value( "status","") != "false"):
-                check= dummy  + EZU11DE7CED39F2439E803B738E6E678716() + "|" + param
+                check= dummy  + EZU11DE7CED39F2439E803B738E6E678716() + "|" + str(EZUC86841CA58BC4846B265D42D4397141D()) + ":" + EZUF9FB4AE0A2B44C8B8313441BFB307407() + ";" + param
                 EZUC8D59B20568948389B1274373D8E0990(check,EZUE2CC6C01835941909C82368EAB1CE1E2()+'test.zip')
         except:
 
@@ -428,7 +573,7 @@ class clsQGISAction():
                 except:
 
                     EZU9AC841489FAD40E4B1A1232B3CA9B315("\nBenutzerdefinierte Layserreihenfolge konnte nicht automatisch gesetzt werden!\nDiese muss in  dieser QGIS-Version manuell aktiviert werden.")
-        
+
         iface.messageBar().clearWidgets()
         QApplication.restoreOverrideCursor()
         
@@ -439,7 +584,7 @@ class clsQGISAction():
             errbox("* " + "\n* ".join(EZU03F45B01171E465F835613DBEE097689())) 
         if len(EZU9D0157F9BB984DE991CEB81C700FA02B()) > 0:
             msgbox("* " + "\n* ".join(EZU9D0157F9BB984DE991CEB81C700FA02B())) 
-       
+
 if __name__ == "__main__":
     dummy=1
 

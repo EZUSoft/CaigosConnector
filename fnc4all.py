@@ -220,6 +220,7 @@ def errbox (text,p=None):
     try:
         QgsMessageLog.logMessage( su, u'EZUSoft:Error' )
     except:
+        print("FEHLER:",text)
 
         pass
 
@@ -441,6 +442,9 @@ if __name__ == "__main__":
 
 
 
+    
+
+    
     EZU9AC841489FAD40E4B1A1232B3CA9B315("xhgxhgfhgi h         hhhhhhhhhhhhhhhhhhhh hhhhhhhhhhhhhh uiuq")
     import sys
     app = QApplication(sys.argv)

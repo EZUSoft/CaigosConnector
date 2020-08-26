@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>649</width>
-    <height>626</height>
+    <height>688</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,6 +42,9 @@
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout">
+       <item row="8" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+       </item>
        <item row="5" column="0">
         <widget class="QCheckBox" name="chkLeer">
          <property name="text">
@@ -49,27 +52,37 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
-        <widget class="QCheckBox" name="chkGISDB">
+       <item row="1" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QCheckBox" name="chkGPKGexp">
+             <property name="text">
+              <string>GeoPackage generieren</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="chkSHPexp">
+           <property name="text">
+            <string>ESRI Shape generieren</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="4" column="0">
+        <widget class="QComboBox" name="cbObjKlasse">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>Sachdaten (GISDB) anbinden</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
         </widget>
-       </item>
-       <item row="7" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_2"/>
        </item>
        <item row="2" column="1">
         <layout class="QGridLayout" name="gridLayout_3">
@@ -112,59 +125,6 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
-        <widget class="QCheckBox" name="chk3DDar">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>Übergabe 3D Daten</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="lbCharSet">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>Zeichensatz</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QCheckBox" name="chkSHPexp">
-           <property name="text">
-            <string>ESRI Shape generieren</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="6" column="2">
-        <widget class="QPushButton" name="cmdReset">
-         <property name="text">
-          <string>Standardeinstellungen</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <widget class="QCheckBox" name="chkDar">
          <property name="sizePolicy">
@@ -181,6 +141,60 @@
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="chkFiltObjKl">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Filtern nach Objektklassen</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="chkGISDB">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Sachdaten (GISDB) anbinden</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="lbCharSet">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Zeichensatz</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -205,7 +219,59 @@
          </item>
         </layout>
        </item>
-       <item row="5" column="2">
+       <item row="8" column="0">
+        <widget class="QCheckBox" name="chk3DDar">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Übergabe 3D Daten</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
+        <widget class="QPushButton" name="cmdReset">
+         <property name="text">
+          <string>Standardeinstellungen</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="chkKeys">
+         <property name="text">
+          <string>GIS-Tabelle (Key-Felder) anbinden</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="txtZielPfad">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>2</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="locale">
+          <locale language="English" country="UnitedKingdom"/>
+         </property>
+         <property name="placeholderText">
+          <string>Verzeichnis wählen</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
         <widget class="QPushButton" name="browseZielPfad">
          <property name="enabled">
           <bool>false</bool>
@@ -227,54 +293,6 @@
          </property>
          <property name="text">
           <string>Browse</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QComboBox" name="cbObjKlasse">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="txtZielPfad">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>2</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="locale">
-          <locale language="English" country="UnitedKingdom"/>
-         </property>
-         <property name="placeholderText">
-          <string>Verzeichnis wählen</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="chkFiltObjKl">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>Filtern nach Objektklassen</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -322,29 +340,33 @@
    <item>
     <layout class="QVBoxLayout" name="Buttons">
      <item>
-      <widget class="QDialogButtonBox" name="button_box">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="standardButtons">
-        <set>QDialogButtonBox::Apply|QDialogButtonBox::Close</set>
-       </property>
-       <property name="centerButtons">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QDialogButtonBox" name="button_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="standardButtons">
+          <set>QDialogButtonBox::Apply|QDialogButtonBox::Close</set>
+         </property>
+         <property name="centerButtons">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

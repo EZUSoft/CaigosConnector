@@ -49,6 +49,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 import xml.etree.cElementTree as ET
 import xml.dom.minidom as dom
 import tempfile
@@ -162,7 +163,7 @@ def fncfield (rs,FieldName):
     w= rs.value(rs.record().indexOf(FieldName)) 
     if not w is None:
         return w
-    else:    
+    else: 
         errlog ("Fehler: " + FieldName)
     
 def EZU15860653386141E5B19CCA1A29AFAB44(root_rule,qtyp,rName,Bedingung):
@@ -183,8 +184,9 @@ def EZUC39B54C5E0F74D3EAF77C5905F21986A(root_rule,Rollenname,Von, Bis):
 
 def EZUBA666A1C25E14A1BBEE2F71BBC47F289 (pSigPath,pSigName):
     sigPfad=EZUEA8B6496E4A94763B4DE5BCE67BA0F14() 
-    svgPfad=EZUA6B299741D5D4E39B1F0ADB88AD47F18() 
 
+    svgPfad=EZUA6B299741D5D4E39B1F0ADB88AD47F18() 
+    
     if pSigPath == "":
         if EZU6F300E76DB074FB99636B535E712DED7() == "V11":
             pSigPath="PRIV:"
@@ -202,13 +204,14 @@ def EZUBA666A1C25E14A1BBEE2F71BBC47F289 (pSigPath,pSigName):
     cgPfad=pSigPath.replace("PRIV:",sigPfad).replace("PUB:",sigPfad)
 
 
-    qPfad=pSigPath.replace("PRIV:",svgPfad).replace("PUB:",svgPfad)
-    
     qDat= cgPfad + pSigName  + ".sig"
     qDat=qDat.replace("\\","/")
-    zDat = qPfad + pSigName + ".svg"
-    zDat=zDat.replace("\\","/")
-    return  qPfad, qDat, zDat
+    zDat=None
+    if svgPfad:
+        svgPfad=pSigPath.replace("PRIV:",svgPfad).replace("PUB:",svgPfad)
+        zDat = svgPfad + pSigName + ".svg"
+        zDat=zDat.replace("\\","/")
+    return  svgPfad, qDat, zDat
     
 def EZUECF30286359145F8A6FCFF9D953FB103(db, qLayer,AktDefName, Group):
         rsAtt=db.EZUDCF0989FCCB948B08C56317AE7037619(EZU492650E7B7434899B738F74CBB9FD56D(3, AktDefName, Group))
@@ -246,21 +249,23 @@ def EZUECF30286359145F8A6FCFF9D953FB103(db, qLayer,AktDefName, Group):
             qLayer.setCustomProperty("labeling/upsidedownLabels","2")
             qLayer.setCustomProperty("labeling/wrapChar",r"\n")  
 
-def EZUC7C192F1878045F492C281DD6C4D4621 (eSym,db,AttID,Win,sigPfad, svgPfad,Num, Group):
+def EZUC7C192F1878045F492C281DD6C4D4621 (eSym,db,AttID,Win, Num, Group):
     rsParam=db.EZUDCF0989FCCB948B08C56317AE7037619(EZU492650E7B7434899B738F74CBB9FD56D(0, AttID , Group))
     rsParam.next()
 
-    qPfad,qDat,zDat = EZUBA666A1C25E14A1BBEE2F71BBC47F289(fncfield(rsParam,"sigpath"),fncfield(rsParam,"signame"))
-    EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (qPfad, True)
-    EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,zDat)
-    
+    qPfad,qDat,zDatOrBase64 = EZUBA666A1C25E14A1BBEE2F71BBC47F289(fncfield(rsParam,"sigpath"),fncfield(rsParam,"signame"))
+    if qPfad:
+        EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (qPfad, True)
+        EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,zDatOrBase64)
+    else:
+        zDatOrBase64 = EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,None)
 
 
     qmap={'pass':'0','class':'SVGFill','locked':'0'}
     eLayer=ET.SubElement(eSym,"layer",qmap)    
     prop={}
     prop['angle']=str(Win)
-    prop['svgFile']=zDat
+    prop['svgFile']=zDatOrBase64
     prop['width']=str(fncfield(rsParam,"wsizemm"))
     prop['pattern_width_unit']="MapUnit"
     for p in prop:
@@ -286,10 +291,13 @@ def EZUAA5C08AC4E7F456A9AED61FCF8291720 (eSym,db,AttID,qPosition, sUnit, Group, 
         rsParam.next()
 
 
-        qPfad,qDat,zDat = EZUBA666A1C25E14A1BBEE2F71BBC47F289(fncfield(rsParam,"sigpath"),fncfield(rsParam,"signame"))
+        qPfad,qDat,zDatOrBase64 = EZUBA666A1C25E14A1BBEE2F71BBC47F289(fncfield(rsParam,"sigpath"),fncfield(rsParam,"signame"))
         
-        EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (qPfad, True)
-        EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,zDat)
+        if qPfad:
+            EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (qPfad, True)
+            EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,zDatOrBase64)
+        else:
+            zDatOrBase64 = EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,None)
         
 
 
@@ -331,7 +339,7 @@ def EZUAA5C08AC4E7F456A9AED61FCF8291720 (eSym,db,AttID,qPosition, sUnit, Group, 
         prop['angle']='0' 
         prop['color']='0,0,0,255'
         prop['horizontal_anchor_point']='1'
-        prop['name']=zDat
+        prop['name']=zDatOrBase64
         prop['offset']='0,0'
         prop['offset_map_unit_scale']='0,0,0,0,0,0'
         prop['offset_unit']= sUnit
@@ -620,9 +628,12 @@ def EZU8EE910E18038480A85D466F9C4F15D48 (eSymbols, symNum,qTyp,rsParam) :
 
 def EZUB8570788139F4F55BFDC9CB6054BC538 (eSymbols, symNum,  rsParam ) :
 
-    qPfad,qDat,zDat = EZUBA666A1C25E14A1BBEE2F71BBC47F289(fncfield(rsParam,"sigpath"),fncfield(rsParam,"signame"))
-    EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (qPfad, True)
-    EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,zDat)
+    qPfad,qDat,zDatOrBase64 = EZUBA666A1C25E14A1BBEE2F71BBC47F289(fncfield(rsParam,"sigpath"),fncfield(rsParam,"signame"))
+    if qPfad:
+        EZUEC3EF0E87A7B41F0BCB1C49ECEEDCE0C (qPfad, True)
+        EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,zDatOrBase64)
+    else:
+        zDatOrBase64 = EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat,None)
     
 
     unitArt='MapUnit' if fncfield(rsParam,"scrresize") == "J" else "MM"
@@ -650,7 +661,7 @@ def EZUB8570788139F4F55BFDC9CB6054BC538 (eSymbols, symNum,  rsParam ) :
     prop['angle_dd_useexpr']='1'
     prop['color']='0,0,0,255'
     prop['horizontal_anchor_point']='1'
-    prop['name']=zDat
+    prop['name']=zDatOrBase64
     prop['offset']='0,0'
     prop['offset_map_unit_scale']='0,0,0,0,0,0'
     prop['offset_unit']=unitArt
@@ -669,7 +680,7 @@ def EZUB8570788139F4F55BFDC9CB6054BC538 (eSymbols, symNum,  rsParam ) :
     qmap={}
     qmap['size']=str(fncfield(rsParam,"wsizemm"))
     qmap['size_unit']=unitArt
-    qmap['name']=zDat
+    qmap['name']=zDatOrBase64
 
     ET.SubElement(eSym,"layer",qmap)
     
@@ -912,6 +923,8 @@ class clsRenderingByQML():
                     
 
                 rsAtt=db.EZUDCF0989FCCB948B08C56317AE7037619(EZUE46C97B18D5843DFB7668B8846F26976(cgEbenenTyp, AktDefID, Group))
+                if (rsAtt== None):
+                    print (EZUE46C97B18D5843DFB7668B8846F26976(cgEbenenTyp, AktDefID, Group))
 
                 if rsAtt.size() == 0 :
 
@@ -962,7 +975,6 @@ class clsRenderingByQML():
 
                     qmap["symbol"] = str(symNum)
                     AktRule=ET.SubElement(eORule,"rule",qmap)
-                    
                     if cgEbenenTyp == 0:
                         qTyp=qLayer.geometryType()
 
@@ -1028,10 +1040,10 @@ class clsRenderingByQML():
                         if fncfield(rsAtt,"pointattr1") != "{00000000-0000-0000-0000-000000000000}":
 
                             sWin=abs(360-fncfield(rsAtt,"alpha1"))
-                            l1=EZUC7C192F1878045F492C281DD6C4D4621 (eSym,db,fncfield(rsAtt,"pointattr1"),sWin,EZUEA8B6496E4A94763B4DE5BCE67BA0F14(),EZUA6B299741D5D4E39B1F0ADB88AD47F18(),1, Group)
+                            l1=EZUC7C192F1878045F492C281DD6C4D4621 (eSym,db,fncfield(rsAtt,"pointattr1"),sWin,1,   Group)
                             if fncfield(rsAtt,"pointattr2") != "{00000000-0000-0000-0000-000000000000}":
                                 sWin=abs(360-fncfield(rsAtt,"alpha2"))
-                                l1=EZUC7C192F1878045F492C281DD6C4D4621 (eSym,db,fncfield(rsAtt,"pointattr2"),sWin,EZUEA8B6496E4A94763B4DE5BCE67BA0F14(),EZUA6B299741D5D4E39B1F0ADB88AD47F18(),1, Group)
+                                l1=EZUC7C192F1878045F492C281DD6C4D4621 (eSym,db,fncfield(rsAtt,"pointattr2"),sWin,1, Group)
                         
 
                         EZU352CEF05BE474C37B4809B26B2A75BE7 (None, symNum, db, qTyp, "outline", fncfield(rsAtt,"lineattr"),Group,fncfield(rsAtt,"AttNum"),eSym) 
@@ -1074,8 +1086,10 @@ class clsRenderingByQML():
         
         qLayer.loadNamedStyle(tempName)
         if not EZUDDCC484E3DC3474889FE69ED76A61E8F():
-            os.remove(tempName)
-
+            try:
+                os.remove(tempName)
+            except:
+                EZUC8DCB02F1A8145AF82C8A69A43E0529B(tr('can not remove: ') + tempName)
     
 if __name__ == "__main__":
     LayerID=None

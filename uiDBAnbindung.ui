@@ -7,17 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>497</height>
+    <height>577</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>.. per Code</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>PostgreSQL CAIGOS Datenbank</string>
+      <string>CAIGOS SQL Datenbank</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="2" column="0">
@@ -27,8 +27,15 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
-       <spacer name="verticalSpacer_2">
+      <item row="5" column="0">
+       <widget class="QComboBox" name="cbProjektAusAdm">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <spacer name="verticalSpacer_3">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -39,194 +46,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="chkManuel">
-        <property name="text">
-         <string>Manuelle Datenbankkonfiguration</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
-         <widget class="QLabel" name="lbCGSignaturPfad">
-          <property name="text">
-           <string>Signaturverzeichnis</string>
-          </property>
-          <property name="buddy">
-           <cstring>leCGSignaturPfad</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="leCGSignaturPfad">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Projektname</string>
-          </property>
-          <property name="buddy">
-           <cstring>leCGProjektName</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="leCGProjektName">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Service</string>
-          </property>
-          <property name="buddy">
-           <cstring>leCGSignaturPfad</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="leSERVICE">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>Host</string>
-          </property>
-          <property name="buddy">
-           <cstring>leHOST</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="leHOST">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Port</string>
-          </property>
-          <property name="buddy">
-           <cstring>lePORT</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="lePORT">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="inputMask">
-           <string>99999</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Datenbankname</string>
-          </property>
-          <property name="buddy">
-           <cstring>leDBNAME</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="leDBNAME">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Benutzername</string>
-          </property>
-          <property name="buddy">
-           <cstring>leUID</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="leUID">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Paßwort</string>
-          </property>
-          <property name="buddy">
-           <cstring>lePWD</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="lePWD">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="echoMode">
-           <enum>QLineEdit::Password</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>EPSG-Code</string>
-          </property>
-          <property name="buddy">
-           <cstring>lePWD</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLineEdit" name="leEPSG">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="inputMask">
-           <string>99999</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
       <item row="0" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -302,15 +121,189 @@
         </item>
        </layout>
       </item>
-      <item row="5" column="0">
-       <widget class="QComboBox" name="cbProjektAusAdm">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-       </widget>
+      <item row="10" column="0">
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lbCGSignaturPfad">
+          <property name="text">
+           <string>Signaturverzeichnis</string>
+          </property>
+          <property name="buddy">
+           <cstring>leCGSignaturPfad</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="leCGSignaturPfad">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Projektname</string>
+          </property>
+          <property name="buddy">
+           <cstring>leCGProjektName</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="leCGProjektName">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lbSERVICE">
+          <property name="text">
+           <string>Service</string>
+          </property>
+          <property name="buddy">
+           <cstring>leCGSignaturPfad</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="leSERVICE">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="lbHostServer">
+          <property name="text">
+           <string>Host/Server</string>
+          </property>
+          <property name="buddy">
+           <cstring>leHostServer</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="leHostServer">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="lbPORT">
+          <property name="text">
+           <string>Port</string>
+          </property>
+          <property name="buddy">
+           <cstring>lePORT</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lePORT">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="inputMask">
+           <string>99999</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Datenbankname</string>
+          </property>
+          <property name="buddy">
+           <cstring>leDBNAME</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="leDBNAME">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Benutzername</string>
+          </property>
+          <property name="buddy">
+           <cstring>leUID</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="leUID">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Passwort</string>
+          </property>
+          <property name="buddy">
+           <cstring>lePWD</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="lePWD">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="echoMode">
+           <enum>QLineEdit::Password</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>EPSG-Code</string>
+          </property>
+          <property name="buddy">
+           <cstring>lePWD</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="leEPSG">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="inputMask">
+           <string>99999</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item row="1" column="0">
-       <spacer name="verticalSpacer_3">
+      <item row="7" column="0">
+       <spacer name="verticalSpacer_2">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -322,10 +315,38 @@
         </property>
        </spacer>
       </item>
+      <item row="8" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QCheckBox" name="chkManuel">
+          <property name="text">
+           <string>Manuelle Datenbankkonfiguration</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cbServerArt">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>PostgreSQL</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MS SQL Server</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -338,14 +359,38 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="btnTest">
-     <property name="text">
-      <string>Eingabe Testen</string>
-     </property>
-    </widget>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QPushButton" name="btnTest">
+       <property name="text">
+        <string>Eingabe Testen</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnMSSQLViews">
+       <property name="text">
+        <string>... per Code ....</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
-   <item row="4" column="0">
+   <item>
     <widget class="QDialogButtonBox" name="bb">
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
@@ -355,12 +400,11 @@
   </layout>
   <zorder>groupBox</zorder>
   <zorder>bb</zorder>
-  <zorder>btnTest</zorder>
   <zorder>verticalSpacer</zorder>
  </widget>
  <tabstops>
   <tabstop>leCGSignaturPfad</tabstop>
-  <tabstop>leHOST</tabstop>
+  <tabstop>leHostServer</tabstop>
   <tabstop>lePORT</tabstop>
   <tabstop>leDBNAME</tabstop>
   <tabstop>leUID</tabstop>

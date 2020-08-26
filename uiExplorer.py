@@ -48,10 +48,12 @@ try:
     from fnc4all import *
     from fnc4CaigosConnector import *
     from modDownload import *
+
 except:
     from .fnc4all import *   
     from .fnc4CaigosConnector import *
     from .modDownload import *
+
 
 
 
@@ -168,12 +170,17 @@ class uiExplorer(QDialog, FORM_CLASS):
         btn.clicked.connect(self.EZU866EA2C310114D5CA9F718FEC89F651F)
         self.browseZielPfad.clicked.connect(self.EZU09753DE7B19B413CA8594D73CE7D6074)
         self.cmdReset.clicked.connect(self.EZU5B07B73B000A446CBEFCD87EF2D82514)         
-        self.chkSHPexp.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)  
+        self.chkSHPexp.clicked.connect(self.EZU0344358B5EF84BE88B8E3C73A2476FBE) 
+        self.chkGPKGexp.clicked.connect(self.EZU99FF3B1EAB4C4CF3B1AA4F1AEC72EFA2)        
         self.chkGISDB.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)      
         self.chkFiltObjKl.clicked.connect(self.EZU663B59541A9B4AC1B23819C4A6E3E89B)
         
+
+        
         chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
-        self.EZU1C9648848F904099A178AD545D77A882()
+        
+        EZU1C9648848F904099A178AD545D77A882()
+        self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61())  
 
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         bGenDar = True  if s.value( "bGenDar", "Ja" )   == "Ja"   else False
@@ -184,6 +191,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         bDarObjKl = False   if s.value( "bDarObjKl", "Nein" )   == "Nein" else True
         b3DDar = False  if s.value( "b3DDar", "Nein" )  == "Nein" else True
         bSHPexp = False if s.value( "bSHPexp", "Nein" ) == "Nein" else True
+        bGPKGexp = False if s.value( "bGPKGexp", "Nein" ) == "Nein" else True
         bSaveDar = True if s.value( "bSaveDar", "Ja" )  == "Ja"   else False
         bOnlyDarField = True if s.value( "bOnlyDarField", "Ja" )  == "Ja"   else False
         bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
@@ -196,11 +204,17 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.cbCharSet.addItems(self.charsetList)
         self.cbCharSet.setCurrentIndex(int(iCodePage))
 
-        self.cbObjKlasse.setCurrentIndex(int(iObjKlasse))        
+                
  
         iGruppe=s.value( "iDarGruppe", 0 )
 
         self.chkDar.setChecked(bGenDar)
+        
+        iServer=EZU50464908A0F8417AA7B9045C4E9B1F6A() 
+        if (iServer != 0 and bDBTab):
+            bDBTab=False 
+        self.chkGISDB.setEnabled(iServer == 0)
+        
         self.chkGISDB.setChecked(bDBTab)
         self.chkFiltObjKl.setChecked(bFiltObjKl)
         self.chkDarObjKl.setChecked(bDarObjKl)
@@ -209,6 +223,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.chkDarObjKl.setChecked(bDarObjKl)
         
         self.chkSHPexp.setChecked(bSHPexp)
+        self.chkGPKGexp.setChecked(bGPKGexp)
         self.chkSaveDar.setChecked(bSaveDar)
         self.chkOnlyDarField.setChecked(bOnlyDarField)
         self.chkNoGISDBIntern.setChecked(bNoGISDBIntern)
@@ -230,28 +245,32 @@ class uiExplorer(QDialog, FORM_CLASS):
             self.cbGruppe.addItem("Gruppe-" + str(g))
         self.cbGruppe.setCurrentIndex(iGruppe)  
     
-    def EZU1C9648848F904099A178AD545D77A882(self):
-        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
-        if (s.value( "status","")==""):
-            ret=EZU39041CAE6C224B57B5E3F261A44FA369("http://www.makobo.de/")
-            s.setValue("status",ret[0])
-            if ret[0]:
-                s.setValue("status",ret[1])
-        self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61())               
+
+        self.chkKeys.setVisible(False)  
+        
+    def EZU0344358B5EF84BE88B8E3C73A2476FBE(self):
+        if self.chkSHPexp.isChecked(): self.chkGPKGexp.setChecked(False) 
+        self.EZU663B59541A9B4AC1B23819C4A6E3E89B()
+    
+    def EZU99FF3B1EAB4C4CF3B1AA4F1AEC72EFA2(self):
+        if self.chkGPKGexp.isChecked(): self.chkSHPexp.setChecked(False) 
+        self.EZU663B59541A9B4AC1B23819C4A6E3E89B()
+        
     def EZU663B59541A9B4AC1B23819C4A6E3E89B(self):
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
-        bGenSHP = self.chkSHPexp.isChecked() 
+        bGenExport = self.chkSHPexp.isChecked() or self.chkGPKGexp.isChecked()
+
         bDBTab  = self.chkGISDB.isChecked()
         bFiltObjKl= self.chkFiltObjKl.isChecked()
 
-        self.browseZielPfad.setEnabled(bGenSHP) 
-        self.cbCharSet.setEnabled(bGenSHP) 
-        self.lbCharSet.setEnabled(bGenSHP) 
-        self.chkSaveDar.setEnabled(bGenSHP) 
-        self.chkOnlyDarField.setEnabled(bGenSHP) 
-        self.chkNoGISDBIntern.setEnabled(bDBTab and bGenSHP) 
+        self.browseZielPfad.setEnabled(bGenExport) 
+        self.cbCharSet.setEnabled(bGenExport) 
+        self.lbCharSet.setEnabled(bGenExport) 
+        self.chkSaveDar.setEnabled(bGenExport) 
+        self.chkOnlyDarField.setEnabled(bGenExport) 
+        self.chkNoGISDBIntern.setEnabled(bDBTab and bGenExport) 
         self.cbObjKlasse.setEnabled(bFiltObjKl)
-        if bGenSHP:
+        if bGenExport:
             self.txtZielPfad.setPlaceholderText(self.tr("Specify destination path")) 
         else:
             self.txtZielPfad.setPlaceholderText("") 
@@ -260,8 +279,8 @@ class uiExplorer(QDialog, FORM_CLASS):
             self.chkDar.setEnabled(False)
             self.chkDar.setChecked(False)          
         else:
-            self.chkDar.setEnabled(s.value( "status","")==b'ok')
-            if (s.value( "status","")!=b'ok'):
+            self.chkDar.setEnabled(s.value( "status","")==b'ok' or s.value( "status","")==b'man')
+            if (s.value( "status","")!=b'ok' and s.value( "status","")!=b'man'):
                 self.chkDar.setChecked(False)    
     
     def EZU5B07B73B000A446CBEFCD87EF2D82514(self):
@@ -273,12 +292,15 @@ class uiExplorer(QDialog, FORM_CLASS):
         self.chk3DDar.setChecked(False)
         
         self.chkSHPexp.setChecked(False)
+        self.chkGPKGexp.setChecked(False)
         self.chkSaveDar.setChecked(False)
         self.chkOnlyDarField.setChecked(False)
         self.chkNoGISDBIntern.setChecked(False)
         QSettings("EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA()).setValue("status",'')
-        self.EZU1C9648848F904099A178AD545D77A882()
+        EZU1C9648848F904099A178AD545D77A882()
+        self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61())  
         self.EZU663B59541A9B4AC1B23819C4A6E3E89B()
+ 
     
     def EZU09753DE7B19B413CA8594D73CE7D6074(self):
         if self.txtZielPfad.text() == "":
@@ -290,10 +312,10 @@ class uiExplorer(QDialog, FORM_CLASS):
         if not os.path.exists(lastSHPDir):
             lastSHPDir=os.getcwd()    
         flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
-        shpDirName = QFileDialog.getExistingDirectory(self, u"Verzeichnis für Shape-Dateien wählen",lastSHPDir,flags)
+        shpDirName = QFileDialog.getExistingDirectory(self, u"Verzeichnis für Export-Dateien wählen",lastSHPDir,flags)
         if shpDirName != "":
             if len( os.listdir( shpDirName ) ) > 0:
-                reply = QMessageBox.question(None, u'Verzeichnis ist nicht leer',u"Namensgleiche Shape-Dateien werden überschrieben", QMessageBox.Yes |  QMessageBox.Cancel, QMessageBox.Cancel)
+                reply = QMessageBox.question(None, u'Verzeichnis ist nicht leer',u"Namensgleiche Export-Dateien werden überschrieben", QMessageBox.Yes |  QMessageBox.Cancel, QMessageBox.Cancel)
                 if reply ==  QMessageBox.Yes:
                     self.txtZielPfad.setText(shpDirName)
             else:
@@ -316,6 +338,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         s.setValue( "bLeer", "Ja" if self.chkLeer.isChecked() == True else "Nein")
         s.setValue( "b3DDar", "Ja" if self.chk3DDar.isChecked() == True else "Nein")
         s.setValue( "bSHPexp", "Ja" if self.chkSHPexp.isChecked() == True else "Nein")
+        s.setValue( "bGPKGexp", "Ja" if self.chkGPKGexp.isChecked() == True else "Nein")
         s.setValue( "bSaveDar", "Ja" if self.chkSaveDar.isChecked() == True else "Nein")
         s.setValue( "bOnlyDarField", "Ja" if self.chkOnlyDarField.isChecked() == True else "Nein")
         s.setValue( "bNoGISDBIntern", "Ja" if self.chkNoGISDBIntern.isChecked() == True else "Nein")
@@ -391,15 +414,15 @@ class uiExplorer(QDialog, FORM_CLASS):
 
 
 
-        if self.chkSHPexp.isChecked():
+        if self.chkSHPexp.isChecked() or self.chkGPKGexp.isChecked():
             ZielPfad=self.txtZielPfad.text()                
             if ZielPfad == "":
-                QMessageBox.critical(None, u"SHP-Zielpfad nicht gesetzt", u"Bitte Shape-Zielpfad wählen") 
+                QMessageBox.critical(None, u"SHP-Zielpfad nicht gesetzt", u"Bitte Export-Zielpfad wählen") 
                 return
             if ZielPfad[:-1] != "/" and ZielPfad[:-1] != "\\":
                     ZielPfad=ZielPfad + "/"
             if not os.path.exists(ZielPfad):
-                QMessageBox.critical(None, u"Shape Zielpfad nicht gefunden", ZielPfad)
+                QMessageBox.critical(None, u"Export Zielpfad nicht gefunden", ZielPfad)
                 return
 
 
@@ -422,13 +445,24 @@ class uiExplorer(QDialog, FORM_CLASS):
             fObjKl = self.cbObjKlasse.currentIndex()
 
 
-        return Liste, self.chkDar.isChecked(),self.rBNeu.isChecked(), self.cbGruppe.currentIndex(),self.chk3DDar.isChecked(), self.chkGISDB.isChecked(),self.chkSHPexp.isChecked(), self.chkLeer.isChecked(), fObjKl, self.chkDarObjKl.isChecked()
+        intExport=0 
+        if self.chkSHPexp.isChecked():  intExport=1
+        if self.chkGPKGexp.isChecked(): intExport=2
+        return Liste, self.chkDar.isChecked(),self.rBNeu.isChecked(), self.cbGruppe.currentIndex(),self.chk3DDar.isChecked(), self.chkGISDB.isChecked(),intExport, self.chkLeer.isChecked(), fObjKl, self.chkDarObjKl.isChecked()
    
     def EZUCC7E8BA81F14493981479906904576A7(self,qry):
         self.cbObjKlasse.clear
-        while (qry.next()):
-            self.cbObjKlasse.addItem(qry.value(1))
-        
+        if qry:
+            while (qry.next()):
+                self.cbObjKlasse.addItem(qry.value(1))
+        else:
+
+            for g in range(255): 
+                self.cbObjKlasse.addItem("Objektklasse-" + str(g))
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+        iObjKlasse=s.value( "iObjKlasse", 0)
+        self.cbObjKlasse.setCurrentIndex(int(iObjKlasse))
+
     def EZU3B1BBFAC47624AEF82118DE7647883DE(self,rootname,qry):
         self.EZUB1A3A5F021794B749EB473C9B033A214 (rootname,qry)
         result = self.exec_()
@@ -442,8 +476,30 @@ class uiExplorer(QDialog, FORM_CLASS):
 
         
 if __name__ == "__main__":
-    uri = QgsDataSourceUri()
+
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+    s.setValue("osversion",'2014010406051F090F1B14')
+
+
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+
+    server=0;host='pl821';port='5432';dbname='cgRISZwickau';uid='caigos';pwd='*****'
+    sSQL='select count(*) from pointssqlspatial'
+    s.setValue( "cgserverart",server);s.setValue( "service", "" ); s.setValue( "host", host )
+    s.setValue( "port", port );s.setValue( "dbname", dbname );s.setValue( "uid", uid );s.setValue( "pwd", pwd )
+    
+
+    
+    
+    
+    
     app = QApplication(sys.argv)
-    cls=uiExplorer()
-    result=cls.exec_()
+    from clsCaigosConnector import *
+    cls=clsCaigosConnector(iface)
+    cls.EZU4B07243EE7524760AD9AFF93D330E846()
+
+
+
+
+
  

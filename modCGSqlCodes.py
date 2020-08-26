@@ -23,6 +23,13 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+try:
+    from fnc4CaigosConnector import *
+
+except:
+    from .fnc4CaigosConnector import *
+
+    
 def EZUBB35FE2AD3BE43C0BED5E2BB71976827 (Art):
     table=None
     if Art == 0: 
@@ -43,6 +50,75 @@ def EZUBB35FE2AD3BE43C0BED5E2BB71976827 (Art):
         table="polyssqlspatial"    
     return table
 
+
+
+def EZUDFCE1DA9263240889EF03443BF48E294 (db):
+
+
+
+    qList=("ezu_qry_lines4qgis","ezu_qry_textedelta4qgis","ezu_qry_texte4qgis","ezu_qry_texteref4qgis","ezu_qry_polylines4qgis","ezu_qry_polys4qgis")
+    sSQL="SELECT cast(OBJECT_ID('dbo.ezu_qry_points4qgis','V') as bigint)"
+    for sQry in qList:
+        sSQL=sSQL + ("+ OBJECT_ID('dbo.%s','V')") % (sQry)
+    db.Open()
+    qry = db.EZUDCF0989FCCB948B08C56317AE7037619(sSQL) 
+    if (qry):
+        qry.next()
+        if (qry.value(0)):
+            return True
+    else:
+        EZUC8DCB02F1A8145AF82C8A69A43E0529B(db.EZU03F45B01171E465F835613DBEE097689())
+    return False
+    
+def EZUC0AEDD5F47634D6B97D2BEF91F31FEC1 (db):
+    bFehler=False
+    db.Open()
+    def EZU37AEC7700A494C7784C3BDE0362794C2(sQry,sql):
+        sCreate="CREATE VIEW " + sQry + " AS " + sql
+        qry = db.EZUCCB71BB19D114085A02FD5CFC412C1AB(sCreate)
+        if not(qry):
+            bFehler=True
+            EZUC8DCB02F1A8145AF82C8A69A43E0529B(db.EZU03F45B01171E465F835613DBEE097689())     
+    
+
+    qList=("ezu_qry_points4qgis","ezu_qry_lines4qgis","ezu_qry_textedelta4qgis","ezu_qry_texte4qgis","ezu_qry_texteref4qgis","ezu_qry_polylines4qgis","ezu_qry_polys4qgis")
+    for sQry in qList:
+        sSQL=("IF OBJECT_ID('dbo.%s','V') IS NOT NULL \nDROP VIEW  dbo.%s \n") % (sQry,sQry)
+        qry = db.EZUCCB71BB19D114085A02FD5CFC412C1AB(sSQL) 
+        if not(qry):
+            bFehler=True
+            EZUC8DCB02F1A8145AF82C8A69A43E0529B(db.EZU03F45B01171E465F835613DBEE097689())
+
+
+
+    sSQL=("SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id,* "
+          ", geometry::STGeomFromText('POINT(' + str([shape].STX+[DeltaR],15,3)  + str([shape].STY+[DeltaH],15,3) + str([shape].Z,10,3) + ')',[shape].STSrid) as geom "
+          ",[shape].STX as x,[shape].STY as y ,[shape].Z as z "
+          "FROM [dbo].[POINTSSQLSPATIAL] ")
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_points4qgis",sSQL)
+
+    sSQL="SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id, *,shape as geom from linessqlspatial"
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_lines4qgis",sSQL)
+
+    sSQL="SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id, *,shape as geom from textssqlspatial"
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_texte4qgis",sSQL)
+
+    sSQL="SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id, *,geometry::STGeomFromText('POINT(' + str([shape].STX+[DeltaR],15,3)  + str([shape].STY+[DeltaH],15,3) + str([shape].Z,10,3) + ')',[shape].STSrid) as geom from textssqlspatial"
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_textedelta4qgis",sSQL)
+    
+    sShape = "shape.ShortestLineTo(geometry::STGeomFromText('POINT(' + str([shape].STX+[DeltaR],15,3)  + str([shape].STY+[DeltaH],15,3) + str([shape].Z,10,3) + ')',[shape].STSrid))"
+    sSQL="SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id, *," + sShape  + " as geom from textssqlspatial  WHERE isdelta = 'J' and (deltar * deltah) != 0"
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_texteref4qgis",sSQL)
+
+    sSQL="SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id, *,shape as geom from segssqlspatial"
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_polylines4qgis",sSQL)
+    
+    sSQL="SELECT ROW_NUMBER() OVER (ORDER BY ObjID) AS ezu_id, *,shape as geom from polyssqlspatial"   
+    EZU37AEC7700A494C7784C3BDE0362794C2 ("ezu_qry_polys4qgis",sSQL)    
+    
+    return not (bFehler)
+
+    
 def EZUF218A9CE2308409D9617A675D4D9DC80():
     return "SELECT ('x' || (substr(id,6,4)))::bit(16)::int -1 as objKl,alias, visible FROM objclasstable order by objKl" 
 
@@ -76,31 +152,42 @@ def EZU8738A84187454718A9979A2226387046(UserNum = '000', LayerList = None):
             sSQL = sSQL + LayerList
             sSQL = sSQL + ")"
 
-    sSQL = (u"SELECT layername, lyrtable.layerid, lyrtable.layertyp, dbname, priority "
-                "FROM prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id "
-                "WHERE usernr='%s' %s "
-                "UNION ALL "
-                ""
-                "select DISTINCT  layername,T1.layerid, layertyp,  dbname, priority from  ( "
-                "SELECT layername || '(RL)' as layername, lyrtable.layerid, 31 as layertyp, ''::text as  dbname, priority FROM prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid "
-                "LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id WHERE usernr='%s' AND lyrtable.layertyp=3 %s "
+    sSQL = (u"SELECT layername, lyrtable.layerid, lyrtable.layertyp, dbname, priority \n" 
+                "FROM (prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid) LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id \n"
+                "WHERE usernr='%s' %s \n"
+                "UNION ALL \n"
+                "SELECT DISTINCT TLayer.layername, TLayer.layerid, TLayer.layertyp, TLayer.dbname, TLayer.priority from  ( \n"
+                "SELECT layername || '(RL)' as layername, lyrtable.layerid, 31 as layertyp, cast(''as char) as  dbname, priority FROM (prptable INNER JOIN lyrtable ON prptable.layerid = lyrtable.layerid) \n"
+                "LEFT JOIN frametbltable on lyrtable.tblid = frametbltable.ft_id WHERE usernr='%s' AND lyrtable.layertyp=3 %s \n)"
                 " \n") % (UserNum,sSQL,UserNum, sSQL) 
+
     
-    sSQL = sSQL + ") as T1 inner join "
-    sSQL = sSQL + "(SELECT layerid FROM  ( SELECT * FROM (" + EZUE46C97B18D5843DFB7668B8846F26976 ( 3,None, UserNum) + ") AS dummy "
-    sSQL = sSQL + ("INNER JOIN textatttable ON dummy.ATTid = textatttable.ta_idfa "
+    
+    sSQL = sSQL + " as TLayer inner join \n"
+    
+    sSQL = sSQL + "(SELECT layerid FROM  \n"
+    sSQL = sSQL + "  ( SELECT TOP 100 PERCENT adid FROM (" 
+    sSQL = sSQL +  EZUE46C97B18D5843DFB7668B8846F26976 ( 3,None, UserNum) + ") AS TScreenAtt \n"
+    sSQL = sSQL + ("INNER JOIN textatttable ON TScreenAtt.ATTid = textatttable.ta_idfa \n"
             "WHERE textatttable.ta_ag=0 and textatttable.lineattr != '{00000000-0000-0000-0000-000000000000}' ORDER BY attnum\n")
             
-    sSQL = sSQL + (") AS t1 "
+    sSQL = sSQL + (") AS t1 \n"
     "INNER JOIN "
-    "  (SELECT DISTINCT textssqlspatial.defid, layerid "
+    "  (SELECT DISTINCT textssqlspatial.defid, layerid \n"
     "   FROM textssqlspatial "
-    "   LEFT JOIN deftable ON textssqlspatial.defid =deftable.defid "
-    "   WHERE  textssqlspatial.defid != '{00000000-0000-0000-0000-000000000000}' "
-    "   UNION ALL SELECT defid, layerid "
-    "   FROM prptable "
-    "   WHERE usernr='000') AS t2 ON t1.adid = t2.defid) as T2 on T1.layerid = T2.layerid "
+    "   LEFT JOIN deftable ON textssqlspatial.defid =deftable.defid \n"
+    "   WHERE  textssqlspatial.defid != '{00000000-0000-0000-0000-000000000000}' \n"
+    "   UNION ALL SELECT defid, layerid \n"
+    "   FROM prptable \n"
+    "   WHERE usernr='000') AS t2 ON t1.adid = t2.defid \n"
+    "   ) as T2 on TLayer.layerid = T2.layerid \n"
     "   ORDER BY priority DESC,layertyp ")
+    if EZU50464908A0F8417AA7B9045C4E9B1F6A() == 0:
+        sSQL=EZUC7AA96B394624996A75241F4F6A0A0C2(sSQL)
+    if EZU50464908A0F8417AA7B9045C4E9B1F6A() == 1:
+        sSQL=EZU3311744BFDFB478CBE981B15F33460B0(sSQL)
+
+    
     return sSQL
 
 def EZU64C9598DF0AB4FADA28872A43F622D0A( Art, LayerID, bDarObjKl):
@@ -136,22 +223,28 @@ def EZU08438317C6A34E64A6AAB7424525B78B( Art, AktDef=None):
     return sSQL
 
 def EZUE46C97B18D5843DFB7668B8846F26976 ( Art, AktDef, Group):
-    sSQL=EZU08438317C6A34E64A6AAB7424525B78B(Art,AktDef)      
+    sSQL=EZU08438317C6A34E64A6AAB7424525B78B(Art,AktDef)  
+
     if Art == 0: 
-        sSQL="select * from (" + sSQL +") as dummy inner join pointatttable ON dummy.ATTid = pointatttable.pta_idfa where pointatttable.pta_ag=" + str(Group)  + " order by attnum"  
+        sSQL="select TOP 100 PERCENT * from (" + sSQL +") as TAtt4Ma inner join pointatttable ON TAtt4Ma.ATTid = pointatttable.pta_idfa where pointatttable.pta_ag=" + str(Group)  + " order by attnum"  
     if Art == 1: 
         sSQL=sSQL
     if Art == 2: 
-        sSQL="select * from (" + sSQL +") as dummy inner join (select * from arcatttable where arcatttable.aa_ag=" + str(Group) + ") as arc ON dummy.ATTid = arc.aa_idfa  inner join polyatttable  ON arc.polyattr = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
+        sSQL="select TOP 100 PERCENT * from (" + sSQL +") as TAtt4Ma inner join (select * from arcatttable where arcatttable.aa_ag=" + str(Group) + ") as arc ON TAtt4Ma.ATTid = arc.aa_idfa  inner join polyatttable  ON arc.polyattr = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
         sSQL = sSQL
     if Art == 3 or Art == 31: 
-       sSQL="select * from (" + sSQL +") as dummy inner join textatttable ON dummy.ATTid = textatttable.ta_idfa where textatttable.ta_ag=" + str(Group)  + " order by attnum"  
+       sSQL="select TOP 100 PERCENT * from (" + sSQL +") as TAtt4Ma inner join textatttable ON TAtt4Ma.ATTid = textatttable.ta_idfa where textatttable.ta_ag=" + str(Group)  + " order by attnum"  
     if Art == 4: 
         sSQL = sSQL
     if Art == 5: 
-        sSQL="select * from (" + sSQL +") as dummy inner join segatttable  ON dummy.ATTid = segatttable.sa_idfa where segatttable.sa_ag=" + str(Group)  + " order by attnum"  
+        sSQL="select TOP 100 PERCENT * from (" + sSQL +") as TAtt4Ma inner join segatttable  ON TAtt4Ma.ATTid = segatttable.sa_idfa where segatttable.sa_ag=" + str(Group)  + " order by attnum"  
     if Art == 6: 
-        sSQL="select * from (" + sSQL +") as dummy inner join polyatttable  ON dummy.ATTid = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
+        sSQL="select TOP 100 PERCENT * from (" + sSQL +") as TAtt4Ma inner join polyatttable  ON TAtt4Ma.ATTid = polyatttable.poa_idfa where polyatttable.poa_ag=" + str(Group) + " order by attnum"  
+    
+    if EZU50464908A0F8417AA7B9045C4E9B1F6A() == 0:
+        sSQL=EZUC7AA96B394624996A75241F4F6A0A0C2(sSQL)
+    if EZU50464908A0F8417AA7B9045C4E9B1F6A() == 1:
+        sSQL=EZU3311744BFDFB478CBE981B15F33460B0(sSQL)
     return sSQL   
 
 def EZU492650E7B7434899B738F74CBB9FD56D( Art, AktAttID, Group):
@@ -192,7 +285,10 @@ def EZU492650E7B7434899B738F74CBB9FD56D( Art, AktAttID, Group):
     return sSQL
 
 if __name__ == "__main__":
-    print(EZUF218A9CE2308409D9617A675D4D9DC80())
+    print (EZU492650E7B7434899B738F74CBB9FD56D( 1, 'AktAttID', 0))
+
+
+
     pass
 
 

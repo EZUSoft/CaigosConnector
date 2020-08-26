@@ -30,6 +30,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 from qgis.utils import os, sys
 try:
     from PyQt5 import QtGui, uic
@@ -70,11 +71,14 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         self.setupUi(self)
         chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+        self.cbServerArt.setCurrentIndex(s.value( "cgserverart", 0 ))
+        self.EZU87A85E77E1144493A3CBE98594204B87()
+        
         self.cbVersion.setCurrentIndex(s.value( "cgversion", 0 ))
         self.EZUB154CA6169DE4C0784D284B246CC18EA()
         
         self.leSERVICE.setText( s.value( "service", "" ) )
-        self.leHOST.setText( self.deftext (s.value( "host"), "localhost" ) )
+        self.leHostServer.setText( self.deftext (s.value( "host"), "localhost" ) )
         self.lePORT.setText( self.deftext (s.value( "port"), "5432") ) 
         self.leDBNAME.setText( s.value( "dbname", "" ) )
         self.leUID.setText( s.value( "uid", "" ))
@@ -86,21 +90,25 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         self.bb.accepted.connect(self.EZU0F29DFD759404DC0AD7127E7983E3254) 
         self.bb.rejected.connect(self.reject)    
         self.btnTest.clicked.connect(self.EZU181874100A5A4980BD95DAA0A4F1AFA8) 
+        self.btnMSSQLViews.clicked.connect(self.EZU3DD852D4A69E4CEF9411FBC7E1012503) 
+        
         self.btnDatAuswahl.clicked.connect(self.EZU3A211ED24CAE49969D3BF8E83949FD61)
         self.chkManuel.clicked.connect(self.EZUF8D2E5B23A7A4EDAA256EC4C159D54B2)
         self.cbVersion.currentIndexChanged.connect(self.EZUB154CA6169DE4C0784D284B246CC18EA)
         self.cbProjektAusAdm.currentIndexChanged.connect(self.EZU6C39AF46E86A4103A0BD15324E9F61EA)
-        if (s.value( "status","")==""):
-            ret=EZU39041CAE6C224B57B5E3F261A44FA369("http://www.makobo.de/")
-            s.setValue("status",ret[0])
-            if ret[0]:
-                s.setValue("status",ret[1])
+        self.cbServerArt.currentIndexChanged.connect(self.EZU87A85E77E1144493A3CBE98594204B87)
+        
+        EZU1C9648848F904099A178AD545D77A882()
+        self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61())
 
     def EZU6438B2850C414D7C8F6A74E455C1C648(self, dbName):
         prjList = [""]
         sSQL = ('SELECT DBPROJECT_PRJNAME AS prjName '
                 'FROM DBPROJECT '
-                'INNER JOIN DBCONNECT ON DBPROJECT.DBPROJECT_IDDBCONNECT = DBCONNECT.DBCONNECT_ID WHERE lower([DBCONNECT_PACTORTYPE])="postgresql";')
+                'INNER JOIN DBCONNECT ON DBPROJECT.DBPROJECT_IDDBCONNECT = DBCONNECT.DBCONNECT_ID '
+                'WHERE lower([DBCONNECT_PACTORTYPE])="postgresql" or lower([DBCONNECT_PACTORTYPE])="mssql" '
+                'order by DBPROJECT_PRJNAME')
+
         if dbName == "":
             return False
 
@@ -127,13 +135,38 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         
         return True        
     
+    def EZU87A85E77E1144493A3CBE98594204B87 (self):
+
+        s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+        s.setValue( "cgserverart", self.cbServerArt.currentIndex() )
+
+        if self.cbServerArt.currentIndex() == 0:
+            self.lbHostServer.setText('Host')
+            self.leSERVICE.show()
+            self.lbSERVICE.show()
+            self.lePORT.show()
+            self.lbPORT.show()
+
+        if self.cbServerArt.currentIndex() == 1:
+            self.lbHostServer.setText('Server')
+            self.leSERVICE.hide()
+            self.lbSERVICE.hide()
+            self.lePORT.hide()
+            self.lbPORT.hide()
+            self.btnMSSQLViews.setText("Abfragen (neu) generieren")
+
+        self.btnMSSQLViews.setVisible(self.cbServerArt.currentIndex() == 1)
+        self.EZUF8D2E5B23A7A4EDAA256EC4C159D54B2()   
+
+    
     def EZU6C39AF46E86A4103A0BD15324E9F61EA (self):
         prjName= self.cbProjektAusAdm.currentText()
         dbName = self.leAktDatName.text()
         if prjName == "":
             return False
         
-        sSQL = ('SELECT DBPROJECT_PRJNAME AS prjName, DBCONNECT_SERVERNAME AS pgServer, DBCONNECT_DATABASENAME AS pgDatabase, DBCONNECT_USERNAME AS pgUserName, DBCONNECT_PASSWORD AS pgPasswd, DBPROJECT_REFSYSTEM AS txtEPSG '
+        sSQL = ('SELECT DBPROJECT_PRJNAME AS prjName, DBCONNECT_SERVERNAME AS pgServer, DBCONNECT_DATABASENAME AS pgDatabase, '
+                'DBCONNECT_USERNAME AS pgUserName, DBCONNECT_PASSWORD AS pgPasswd, DBPROJECT_REFSYSTEM AS txtEPSG, DBCONNECT.DBCONNECT_PACTORTYPE as artServer '
                 'FROM DBPROJECT '
                 'INNER JOIN DBCONNECT ON DBPROJECT.DBPROJECT_IDDBCONNECT = DBCONNECT.DBCONNECT_ID '
                 'WHERE DBPROJECT_PRJNAME=\'' + prjName + '\';')
@@ -145,9 +178,19 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                 EZU0BAA4CE0798E48099454390EF2BC83A4()   
                 
         for row in rs:
+            if row["artServer"].upper() == 'POSTGRESQL'.upper():self.cbServerArt.setCurrentIndex(0)
+            if row["artServer"].upper() == 'MSSQL'.upper():self.cbServerArt.setCurrentIndex(1)
+            if row["artServer"].upper() == 'ORACLE'.upper():
+                msgbox ("Oracle wird noch nicht unterstützt")
             self.leCGProjektName.setText(prjName)
-            self.leHOST.setText(row["pgServer"].split(":")[0])
-            self.lePORT.setText(row["pgServer"].split(":")[1])
+            v = row["pgServer"].split(":")
+            if len(v) == 1:
+                self.leHostServer.setText(row["pgServer"])
+                self.lePORT.setText('0')
+            else:
+                self.leHostServer.setText(row["pgServer"].split(":")[0])
+                self.lePORT.setText(row["pgServer"].split(":")[1])
+            
             self.leDBNAME.setText(row["pgDatabase"])
             self.leUID.setText(row["pgUserName"])
             self.lePWD.setText(row["pgPasswd"])
@@ -188,37 +231,73 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
     def EZUF8D2E5B23A7A4EDAA256EC4C159D54B2(self):
         bFrei= self.chkManuel.isChecked()
         self.leSERVICE.setEnabled(bFrei)
-        self.leHOST.setEnabled(bFrei)
+        self.leHostServer.setEnabled(bFrei)
         self.lePORT.setEnabled(bFrei)
         self.leDBNAME.setEnabled(bFrei)
         self.leUID.setEnabled(bFrei)
         self.lePWD.setEnabled(bFrei)
         self.leCGSignaturPfad.setEnabled(bFrei)
         self.leCGProjektName.setEnabled(bFrei) 
+        self.cbServerArt.setEnabled(bFrei)
+
     
     def EZU54ECA169849940E5896CAB681E8B2FB9(self,IniDatNam):
         try:
             Fehler=""
             iDatNum = open(IniDatNam)
-            z=0
+
             for iZeile in iDatNum:
-                iZeile=iZeile.replace("\n","")
+                iZeile=iZeile.replace("\n","").strip()
+                if iZeile[:12] == "_PactorType=" :
+                    if iZeile[12:].strip().upper() == ("PostgreSQL").upper():self.cbServerArt.setCurrentIndex(0)
+                    if iZeile[12:].strip().upper() == ("MSSQL").upper():  
+
+                        msgbox ("MSSQL wird erst ab CAIGOS 2016 unterstützt")
+                        iDatNum.close()
+                        return None
+                    if iZeile[12:].strip().upper() == ("Oracle").upper(): 
+                        msgbox ("Oracle wird noch nicht unterstützt")
+                        iDatNum.close()
+                        return None
+                    self.EZU87A85E77E1144493A3CBE98594204B87()
+            iDatNum.close()
+               
+
+            iDatNum = open(IniDatNam)
+            for iZeile in iDatNum:
+                iZeile=iZeile.replace("\n","").strip()
                 if iZeile[:12] == "SERVER NAME=" :
-                    v = iZeile[12:].split(":")
-                    if len(v) != 2:
-                        Fehler=Fehler + "\nFehler Servername:\n Erwartet: SERVER NAME=<rechner>:<port> \n Gelesen: " + iZeile[:12]
-                    else:
-                        self.leHOST.setText(v[0].strip())
-                        self.lePORT.setText(v[1].strip())
+                    if self.cbServerArt.currentIndex() == 0:  
+
+                        v = iZeile[12:].split(":")
+                        if len(v) != 2:
+                            Fehler=Fehler + "\nFehler Servername:\n Erwartet: SERVER NAME=<rechner>:<port> \n Gelesen: " + iZeile[:12]
+                        else:
+                            self.leHostServer.setText(v[0].strip())
+                            self.lePORT.setText(v[1].strip())
+                    
+                    if self.cbServerArt.currentIndex() == 1:  
+
+                        v = iZeile[12:].split(":")
+                        if len(v) == 2:
+                            self.leHostServer.setText(v[0].strip())
+                            self.lePORT.setText(v[1].strip())
+                        else:
+                            self.leHostServer.setText(iZeile[12:].strip())
+                            self.lePORT.setText('0')
+                            
                 if iZeile[:14] == "DATABASE NAME=" :
                     self.leDBNAME.setText(iZeile[14:].strip())
                 if iZeile[:10] == "USER NAME=" :
                     self.leUID.setText(iZeile[10:].strip())             
                 if iZeile[:9] == "PASSWORD=" :
                     self.lePWD.setText(iZeile[9:].strip()) 
-            self.leCGSignaturPfad.setText(os.path.dirname(IniDatNam)+'/signatur/')                    
+            self.leCGSignaturPfad.setText(os.path.dirname(IniDatNam)+'/signatur/')  
+            iDatNum.close()
             if Fehler:
                 QMessageBox.critical( None, u"Es sind Fehler aufgetreten", Fehler )
+            else:
+                return True
         except: 
             EZU2CC2ED60E16A4317BA8BEBE4D6120301 ()
     
@@ -226,7 +305,6 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         try:
             Fehler=""
             iDatNum = open(IniDatNam)
-            z=0
             for iZeile in iDatNum:
                 iZeile=iZeile.replace("\n","")
                 if iZeile[:12] == "SERVER NAME=" :
@@ -234,7 +312,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     if len(v) != 2:
                         Fehler=Fehler + "\nFehler Servername:\n Erwartet: SERVER NAME=<rechner>:<port> \n Gelesen: " + iZeile[:12]
                     else:
-                        self.leHOST.setText(v[0].strip())
+                        self.leHostServer.setText(v[0].strip())
                         self.lePORT.setText(v[1].strip())
                 if iZeile[:14] == "DATABASE NAME=" :
                     self.leDBNAME.setText(iZeile[14:].strip())
@@ -242,6 +320,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     self.leUID.setText(iZeile[10:].strip())             
                 if iZeile[:9] == "PASSWORD=" :
                     self.lePWD.setText(iZeile[9:].strip()) 
+            iDatNum.close()
 
 
             
@@ -263,14 +342,13 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     iZeile=iZeile.replace("\n","")
                     if iZeile[:12] == "ProjectName=" :
                         PrjName=iZeile[12:].strip()                               
-
+                iDatNum.close()
                 if PrjName == "":
                    Fehler="Projektname konnte nicht ermittelt werden.\nEs wird der Datenbankname benutzt"
             if Fehler:
                 QMessageBox.critical( None, u"Es sind Fehler aufgetreten", Fehler )
         except: 
             EZU2CC2ED60E16A4317BA8BEBE4D6120301 () 
-        iDatNum.close()
         return PrjName
         
     def EZU3A211ED24CAE49969D3BF8E83949FD61(self):
@@ -291,7 +369,8 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                              vDat , "database (*.ini)")[0]
 
                 if iniDat:
-                    self.EZU54ECA169849940E5896CAB681E8B2FB9(iniDat)
+                    if not self.EZU54ECA169849940E5896CAB681E8B2FB9(iniDat):
+                        return False
                     
 
                     prjDat=""
@@ -300,7 +379,8 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                              prjDat=os.path.dirname(iniDat) + "/" + f
                     PrjName=self.EZUF74320A59E5B4F2D9CC6820DC6325122(prjDat)
                     if PrjName == "":
-                       PrjName=self.leDBNAME.plainText() 
+                       PrjName=self.leDBNAME.text().strip() 
+                    
                     self.leCGProjektName.setText(EZUF0AF6D30C6EB4BE8A558B27DA05DBD21(PrjName))
                     self.leAktDatName.setText(iniDat)
                     
@@ -319,17 +399,19 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                         self.leAktDatName.setText(admDat)
                         self.leCGSignaturPfad.setText(os.path.dirname(admDat)+'/signaturen/') 
 
+        
         except Exception as e:
             EZU2CC2ED60E16A4317BA8BEBE4D6120301 ()
     
     def deftext(self,Wert,DefWert):
 
+
         if Wert == None:
             return DefWert        
-        if Wert.strip() == "":
+        if str(Wert).strip() == "":
             return DefWert
         else:
-            return Wert
+            return str(Wert)
 
 
 
@@ -350,13 +432,14 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
     def EZU32A31DECC681474E9B2AFD4A5DC1958A(self, error=True):
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         s.setValue( "cgversion", self.cbVersion.currentIndex() )
+        s.setValue( "cgserverart", self.cbServerArt.currentIndex() )
         if self.cbVersion.currentIndex() == 0:
             s.setValue( "dbinidatei", self.leAktDatName.text().strip() )
         if self.cbVersion.currentIndex() == 1:
             s.setValue( "admindatei", self.leAktDatName.text().strip() )
   
         s.setValue( "service", self.leSERVICE.text().strip() )
-        s.setValue( "host", self.leHOST.text().strip() )
+        s.setValue( "host", self.leHostServer.text().strip() )
         s.setValue( "port", self.lePORT.text().strip() )
         s.setValue( "dbname", self.leDBNAME.text().strip() )
         s.setValue( "uid", self.leUID.text().strip() )
@@ -366,9 +449,24 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         s.setValue( "cgprojektname", EZUF0AF6D30C6EB4BE8A558B27DA05DBD21(self.leCGProjektName.text().strip()) )        
 
 
+    def EZU3DD852D4A69E4CEF9411FBC7E1012503(self):
+        service = self.leSERVICE.text().strip()
+        host = self.leHostServer.text().strip()
+        port = self.lePORT.text().strip()
+        dbname = self.leDBNAME.text().strip()
+        uid = self.leUID.text().strip()
+        pwd = self.lePWD.text().strip()
+        db = pgOpenDatabase(service, host, port, dbname, uid, pwd)
+        if EZUC0AEDD5F47634D6B97D2BEF91F31FEC1 (db):
+            msgbox ("Abfragen wurden generiert")
+        else:
+            if len(EZU03F45B01171E465F835613DBEE097689()) > 0:
+                errbox("* " + "\n* ".join(EZU03F45B01171E465F835613DBEE097689())) 
+                EZU0BAA4CE0798E48099454390EF2BC83A4()
+                
     def EZU181874100A5A4980BD95DAA0A4F1AFA8(self):
         service = self.leSERVICE.text().strip()
-        host = self.leHOST.text().strip()
+        host = self.leHostServer.text().strip()
         port = self.lePORT.text().strip()
         dbname = self.leDBNAME.text().strip()
         uid = self.leUID.text().strip()
@@ -377,7 +475,32 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         chkDB.EZU8011F18E65644E5D9231765F31D7EE19(self.cbVersion.currentIndex(), self.leEPSG.text().strip(),self.leCGSignaturPfad.text().strip(),
                              EZUF0AF6D30C6EB4BE8A558B27DA05DBD21(self.leCGProjektName.text().strip()),None, False) 
 
-    def EZU0F29DFD759404DC0AD7127E7983E3254(self):    
+    def EZU0F29DFD759404DC0AD7127E7983E3254(self):
+
+        if self.cbServerArt.currentIndex() == 1:
+            bMSQLFehlt=False 
+            db=pgCurrentDB()
+            if db.EZU8011F18E65644E5D9231765F31D7EE19(None,None,None,None, None, True):
+                iServer=EZU50464908A0F8417AA7B9045C4E9B1F6A() 
+                if iServer == 1:
+                    if not EZUDFCE1DA9263240889EF03443BF48E294 (db):
+                        if len(EZU03F45B01171E465F835613DBEE097689()) > 0:
+                            errbox(EZU03F45B01171E465F835613DBEE097689())
+                            EZU0BAA4CE0798E48099454390EF2BC83A4()
+                        else:
+                            bMSQLFehlt=True
+                        db=None  
+            if bMSQLFehlt:
+                s = "Die MSSQL-Abfragen wurden nicht (vollständig) generiert"
+
+
+                sHinweis="In der MSQL-Datenbank müssen Sichten (VIEW) erzeugt werden,\n"
+                sHinweis=sHinweis + "um mit QGIS auf die Geodaten zugreifen zu können.\n\n"
+                sHinweis=sHinweis + "Sollen die Abfragen jetzt erzeugt werden?"
+                reply = QMessageBox.question(None, s,sHinweis, QMessageBox.Yes |  QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    self.EZU3DD852D4A69E4CEF9411FBC7E1012503()
+
         self.EZU32A31DECC681474E9B2AFD4A5DC1958A()
         QDialog.accept(self) 
 

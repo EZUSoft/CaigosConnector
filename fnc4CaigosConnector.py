@@ -22,15 +22,50 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+import re
 try:
     from fnc4all import *
-    from fnc4CaigosConnector import *
+
 
 except:
     from .fnc4all import *
-    from .fnc4CaigosConnector import *
 
 
+def EZU765F003A443242CFAC8F3F367CC94165 (sSQL):
+    s=sSQL.replace("||","+")
+    s=s.replace('!=','<>')
+    s=re.sub('cast(\((.*?)\))', '\'XXX\'',s) 
+    return s
+    
+def EZU3311744BFDFB478CBE981B15F33460B0 (sSQL):
+    s=sSQL.replace("||","+")
+    return s
+
+def EZUC7AA96B394624996A75241F4F6A0A0C2 (sSQL):
+    s=sSQL.replace("TOP 100 PERCENT","")
+    return s    
+    
+    
+def EZU50464908A0F8417AA7B9045C4E9B1F6A():
+
+
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+    try:
+        return int(s.value( "cgserverart"))
+    except:
+        return 0
+
+def EZU51B3FDFA62764BDA9B7CED2681A70937():
+
+
+    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+    try:
+        if int(s.value( "cgserverart")) == 0: return ("Postgres")
+        if int(s.value( "cgserverart")) == 1: return ("MSSQL")
+        if int(s.value( "cgserverart")) == 2: return ("ORACLE")
+    except:
+        return ("Postgres")
+        
 def EZU366C2CC3BAD145709B8EEEB611D1D6AA():
     return "CAIGOS-Konnektor" + str(myqtVersion)
 
@@ -50,6 +85,7 @@ def EZU11DE7CED39F2439E803B738E6E678716():
     
 def tr( message):
     return message  
+ 
     
 def EZUAC62A428AD734562A807B0FF8D792A61(intCG = None,sStatus = None):
     s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
@@ -57,16 +93,19 @@ def EZUAC62A428AD734562A807B0FF8D792A61(intCG = None,sStatus = None):
     if not sStatus:
         sStatus = " - Onlineversion"
         if (s.value( "status","")==''):
-            sStatus = " - Offlineversion"     
+            sStatus = " - Offlineversion"   
         else:
-            if (s.value( "status","")!=b'ok'):
-                sStatus = " - Demoversion"
+            if (s.value( "status","")==b'man'):
+                sStatus = " - Lizenzversion" 
+            else:
+                if (s.value( "status","")!=b'ok'):
+                    sStatus = " - Demoversion"
     if not intCG :
         intCG = int(s.value( "cgversion",-1))
     if intCG == 0:
         sVersion = "11.2"
     if intCG == 1:        
-        sVersion = "2016-2019"
+        sVersion = "2016-2020"
     return u"CAIGOS Importer für Version " + sVersion + "   (PlugIn Version " + EZU5067C1BD7E924D33B7D7B27226119B84() + ")" + sStatus
     
 if __name__ == "__main__": 
