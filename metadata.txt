@@ -1,0 +1,76 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=CAIGOS Konnektor
+qgisMinimumVersion=3.4
+qgisMaximumVersion=3.99
+description=CAIGOS SQL Projekte anzeigen
+
+author=EZUSoft
+email=qgis@makobo.de
+version=1.1.7
+changelog=03.07.2022 V1.1.7: 
+        - interne Anpassungen
+
+	10.05.2022 V1.1.6: 
+        - verbesserter Hinweis (erste objid) bei AD ohne Darstellung
+        
+        13.04.2021 V1.1.5: 
+        - Fehler bei undefinierten Signaturverzeichnis beseitigt
+        
+        12.04.2021 V1.1.4: 
+        - Fehler bei Datenbankanpassung MSSQL beseitigt
+        
+        11.01.2021 V1.1.3: 
+        - Linienbegleitende Sigaturen grundsätzlich in Karteneinheiten, da es Caigos auch so macht
+        
+        09.11.2020 V1.1.2:
+        - Fehler beim Einbinden von Bemaßungen gefixed
+        
+        31.08.2020 V1.1.1:
+        - optionale Einbindung der Keyfelder (GISDB-Tabelle)  
+        
+        26.08.2020 V1.1.0:
+        - Erweiterung auf GeoPackage (Daten+Darstellung)
+        - ab QGIS 3.4 SVG-Symbole in qlr einbetten
+        - Test, ob GISDB-Tabelle existiert
+        - Projekte alphabetisch sortieren
+        - Support ab QGIS 3.4
+
+        06.01.2020 V1.0.0:
+        - Unterstützung von MS SQL Server
+     
+
+about=Remark:
+      CAIGOS-GIS is a German-speaking product. Thatswhy the plugin is only available in German language.
+      . 
+      Ab CAIGOS Version 2015 werden die Projektdaten in einer SQL-Datenbank gespeichert. Bevorzugte Umgebung ist dabei PostgreSQL mit PostGIS. Damit bietet sich die technische Möglichkeit die Geodaten ohne Konvertierung direkt in QGIS einzubinden. Der Schwerpunkt liegt dabei auf der Präsentation der Daten. Der große Vorteil der direkten Einbindung ist dabei die (fast) komplette Übernahme der Darstellung der einzelnen Ebenen. Dabei werden sowohl Punktsymbole, Ebenenprioritäten, Individualattribute als auch maßstabsabhängige Darstellungen übernommen. Selbstverständlich ist auch eine Übernahme von Fachschalendaten bzw. GISDB Tabellen möglich. Für die Darstellung in QGIS wird Projektstruktur mit Fachschalen/Themen/Gruppen und Ebenen 1:1 übernommen.
+      .
+      Bedienung:
+      Nach Einbinden des PlugIns sind die Funktionen unter dem Menüpunkt "Datenbank" --> "CAIGOS-Datenprovider" verfügbar.
+
+tracker=https://github.com/EZUSoft/CaigosConnector/issues
+repository=https://github.com/EZUSoft/CaigosConnector
+homepage=http://www.makobo.de/links/Forum_CaigosConnector.php
+# End of mandatory metadata
+
+# Recommended items:
+
+
+# Tags are comma separated with spaces allowed
+tags=Datenprovider,CAIGOS,Import 
+category=Database
+icon=icon.png
+
+# experimental flag
+experimental=False
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
