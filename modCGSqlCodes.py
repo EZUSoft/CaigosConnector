@@ -125,7 +125,7 @@ def EZUC0AEDD5F47634D6B97D2BEF91F31FEC1 (db):
 def EZUF218A9CE2308409D9617A675D4D9DC80():
     return "SELECT ('x' || (substr(id,6,4)))::bit(16)::int -1 as objKl,alias, visible FROM objclasstable order by objKl" 
 
-def EZU78184C71D89340528FDC57FFA2DEE943( LayerID):
+def EZUC919609B70974C769FCCE8339E252DC9( LayerID):
     sSQL = (u"SELECT layername from lyrtable WHERE layerid='%s'") % (LayerID)
     return sSQL
     
@@ -200,10 +200,12 @@ def EZU8738A84187454718A9979A2226387046(UserNum = '000', LayerList = None):
 def EZU64C9598DF0AB4FADA28872A43F622D0A( Art, LayerID, bDarObjKl):
 
 
+
+
     TabName=EZUBB35FE2AD3BE43C0BED5E2BB71976827(Art)
     zSQL=""
     if bDarObjKl:
-        zSQL=("UNION select DISTINCT defid,objclassindex as objklasse from loctable where layerid='%s' ") % (LayerID)
+        zSQL=("UNION select DISTINCT defid,objclassindex as objklasse, 'ObjKlasse: ' || objclassindex as oneObjID from loctable where layerid='%s' ") % (LayerID)
     if TabName:
         sSQL=(u"select DISTINCT ID.defid, COALESCE(defname, '        ') as sortdefname , ID.objklasse, ID.oneObjID "
                " FROM (select defid,-1 as objklasse, min(objid) as oneObjID from %s where layerid='%s' group by defid "
@@ -291,12 +293,4 @@ def EZU492650E7B7434899B738F74CBB9FD56D( Art, AktAttID, Group):
     if Art == 6: 
         sSQL=None       
     return sSQL
-
-if __name__ == "__main__":
-    print (EZU492650E7B7434899B738F74CBB9FD56D( 1, 'AktAttID', 0))
-
-
-
-    pass
-
 

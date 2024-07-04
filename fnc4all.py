@@ -38,6 +38,7 @@ from qgis.core import *
 from qgis.utils import os, sys
 from itertools import cycle
 
+     
 try:
     from PyQt5 import QtGui
     from PyQt5.QtCore import QSettings
@@ -47,6 +48,7 @@ try:
     def EZUC86841CA58BC4846B265D42D4397141D():
         return Qgis.QGIS_VERSION_INT
     myqtVersion = 5
+
 
 except:
     from PyQt4 import QtGui
@@ -73,6 +75,7 @@ import traceback
 import tempfile
 import codecs
 from glob import glob
+
 
 
 def EZUA7F0526153984F32B32657FEE7904ECD (FullNode, Start = None):
@@ -184,56 +187,47 @@ def EZUF9FB4AE0A2B44C8B8313441BFB307407():
 
 
 
-def EZU2CC2ED60E16A4317BA8BEBE4D6120301(Sonstiges = None):
 
-    exc_type, exc_obj, exc_tb = sys.exc_info()
-    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    tb_lineno=exc_tb.tb_lineno
-    try:
-        QgsMessageLog.logMessage( traceback.format_exc().replace("\n",chr(9))+ (chr(9) + Sonstiges if Sonstiges else ""), u'EZUSoft:Error' )
-    except:
-
-        pass
-
-
-    EZUC8DCB02F1A8145AF82C8A69A43E0529B ("LZF:" + traceback.format_exc().replace("\n",chr(9)) + (chr(9) + Sonstiges if Sonstiges else ""))    
 
 def cut4view (fulltext,zeichen=1500,zeilen=15,anhang='\n\n                  ............. and many more .........\n'):
-    cut = False
-    ctext=fulltext
-    if len(fulltext) > zeichen:
-        cut=True
-        ctext=ctext[:zeichen]
-    
-    arr=ctext.split('\n')
-    if len(arr) > zeilen:
-        cut = True
-        ctext= '\n'.join(arr[:zeilen])
-    if cut:
-        ctext=ctext + anhang
-    return ctext
- 
-def errbox (text,p=None):
+    try:
+        cut = False
+        ctext=fulltext
+        if len(fulltext) > zeichen:
+            cut=True
+            ctext=ctext[:zeichen]
+        
+        arr=ctext.split('\n')
+        if len(arr) > zeilen:
+            cut = True
+            ctext= '\n'.join(arr[:zeilen])
+        if cut:
+            ctext=ctext + anhang
+        return ctext
+    except:
+        EZU2CC2ED60E16A4317BA8BEBE4D6120301 ()
+        return '#FEHLER#cut4view'
+def errbox (text, Quelle=''):
     su= EZUC936D29251B44D4E994497BF023338C7(text)
 
-    QMessageBox.critical(None, "PlugIn Error", cut4view(su))
     try:
+        QMessageBox.critical(None, Quelle + "PlugIn Error: ", cut4view(su))
         QgsMessageLog.logMessage( su, u'EZUSoft:Error' )
     except:
-        print("FEHLER:",text)
+        QgsMessageLog.logMessage( '#Fehler errbox#', u'EZUSoft:Hinweise' )
+        print("FEHLER:",text)        
 
-        pass
 
 
 def msgbox (text):
     su= EZUC936D29251B44D4E994497BF023338C7(text)
-
-    QMessageBox.information(None, "PlugIn Hinweis", cut4view(su))
     try:
+        QMessageBox.information(None, "PlugIn Hinweis", cut4view(su))
         QgsMessageLog.logMessage( su, u'EZUSoft:Hinweise' )
     except:
+        QgsMessageLog.logMessage( '#Fehler Textanzeige#', u'EZUSoft:Hinweise' )
 
-        pass
+
 
 def errlog(text, DebugMode = False):
     su= EZUC936D29251B44D4E994497BF023338C7(text)   
@@ -243,7 +237,7 @@ def errlog(text, DebugMode = False):
     try:
         QgsMessageLog.logMessage( su, u'EZUSoft:Fehler' )
     except:
-
+        pass
         pass
 
 def EZU7134CD8D717449148C4836EBEB211A29(All=None):
@@ -298,7 +292,7 @@ def debuglog(text,DebugMode=False):
 def hinweislog(text,p=None):
         su= EZUC936D29251B44D4E994497BF023338C7(text)   
         try:
-            QgsMessageLog.logMessage( su, 'AXF2Shape:Comments' )
+            QgsMessageLog.logMessage( su, 'Comments' )
         except:
             pass
     
@@ -428,24 +422,3 @@ def EZUA4368C0FEFDC4FC1977350D9EDFD8729 (DatName, Art, sEncode):
         tmp = open(DatName, Art)
     return tmp
         
-if __name__ == "__main__": 
-     
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    
-    EZU9AC841489FAD40E4B1A1232B3CA9B315("xhgxhgfhgi h         hhhhhhhhhhhhhhhhhhhh hhhhhhhhhhhhhh uiuq")
-    import sys
-    app = QApplication(sys.argv)
-    msgbox(cut4view("\n".join(EZU9D0157F9BB984DE991CEB81C700FA02B())))

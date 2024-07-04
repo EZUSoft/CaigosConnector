@@ -228,7 +228,7 @@ class clsCaigosConnector:
     
     def EZU700DA696BF2940D5A93583D248106E9E(self): 
 
-        webbrowser.open_new_tab("http://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        webbrowser.open_new_tab("https://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
 
     def EZU4B07243EE7524760AD9AFF93D330E846(self):
         EZU0BAA4CE0798E48099454390EF2BC83A4()
@@ -288,22 +288,16 @@ class clsCaigosConnector:
         cls.exec_()    
   
   
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    db=pgCurrentDB()
-    db.Open()
-    if db.EZU8011F18E65644E5D9231765F31D7EE19(None,None,None,None, None, True):
-        print ("alles gut")
-    else:
-        print ("das war nix")
-        db=None 
-    if EZUDFCE1DA9263240889EF03443BF48E294(db) :
-        print ("alles gut")
-    else:
-        print ("das war nix")
-    
 
 
-    
+
+
+
+
+
+
+
+
+
 
 

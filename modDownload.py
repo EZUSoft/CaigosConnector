@@ -30,7 +30,6 @@ try:
 
 
     from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
-
     myqtVersion = 4
 
 except:
@@ -42,10 +41,12 @@ except:
 
 try:
     from fnc4all import *
-    from fnc4CaigosConnector import *
+    from fnc4CaigosConnector import EZU366C2CC3BAD145709B8EEEB611D1D6AA
+    from fnc4CaigosConnector import EZU11DE7CED39F2439E803B738E6E678716
 except:
     from .fnc4all import *   
-    from .fnc4CaigosConnector import *
+    from .fnc4CaigosConnector import EZU366C2CC3BAD145709B8EEEB611D1D6AA
+    from .fnc4CaigosConnector import EZU11DE7CED39F2439E803B738E6E678716
 
 from os import path, remove
     
@@ -93,7 +94,7 @@ def EZUC8D59B20568948389B1274373D8E0990 (EZU4A245AA773D54F9EB8FE4C76EEB8A78E, Lo
 
     status=reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
     if (status==301):
-
+        pass
         redirectUrl = reply.attribute(request.RedirectionTargetAttribute)
         request = QNetworkRequest()
         request.setUrl(redirectUrl)
@@ -117,11 +118,12 @@ def EZUC8D59B20568948389B1274373D8E0990 (EZU4A245AA773D54F9EB8FE4C76EEB8A78E, Lo
         return None, reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
     reply.deleteLater()
 
+
 def EZU1C9648848F904099A178AD545D77A882():
     s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
     if (s.value( "status","")==""):
 
-        ret=EZU39041CAE6C224B57B5E3F261A44FA369("http://www.makobo.de/")
+        ret=EZU39041CAE6C224B57B5E3F261A44FA369("https://www.makobo.de/")
         s.setValue("status",ret[0])
         if ret[0]:
             s.setValue("status",ret[1])
@@ -140,7 +142,7 @@ def EZU39041CAE6C224B57B5E3F261A44FA369 (EZU4A245AA773D54F9EB8FE4C76EEB8A78E):
     def EZU4A245AA773D54F9EB8FE4C76EEB8A78E():
         import platform
         fncBrowserId=platform.platform()
-        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
+        chkurl="https://www.makobo.de/links/Caigos_CheckVersion.php?"
         return chkurl + EZU11DE7CED39F2439E803B738E6E678716() + "|" + str(EZUC86841CA58BC4846B265D42D4397141D()) + ":" + EZUF9FB4AE0A2B44C8B8313441BFB307407()
     
     def EZUC39342A9E225496F8A7D38CB18529D36():
@@ -190,8 +192,3 @@ def EZU39041CAE6C224B57B5E3F261A44FA369 (EZU4A245AA773D54F9EB8FE4C76EEB8A78E):
     return reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)==200,onfinish.ret
 
 
-if __name__ == '__main__':
-    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
-    print(s.setValue("status",''))
-    pass
-    

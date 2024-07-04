@@ -32,6 +32,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 from qgis.utils import os, sys
 try:
     from PyQt5 import QtGui, uic
@@ -47,6 +48,7 @@ except:
         return QgsDataSourceURI()
 
 try:
+    from uiAdminerCopy import uiAdminerCopy
     from clsDatenbank import *
     from clsCaigosConnector import *
     from fnc4all import *
@@ -54,6 +56,7 @@ try:
     from fnc4sqlite import *
     from modDownload import *
 except:
+    from .uiAdminerCopy import uiAdminerCopy
     from .clsDatenbank import *
     from .clsCaigosConnector import *
     from .fnc4all import *
@@ -64,16 +67,21 @@ except:
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'uiDBAnbindung.ui'))
 
-
-
 class uiDBAnbindung(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super(uiDBAnbindung, self).__init__(parent)
         self.setupUi(self)
-        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
+        chkurl="https://www.makobo.de/links/Caigos_CheckVersion.php?"
+        
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         self.cbServerArt.setCurrentIndex(s.value( "cgserverart", 0 ))
         self.EZU87A85E77E1144493A3CBE98594204B87()
+        
+        self.leAktDatName.setText(s.value( "admindatei", "" ))
+        
+        bpwdauslesen = True if s.value( "pwdauslesen", "Nein" ) == "Ja" else False
+        self.chkPwdAuslesen.setChecked(bpwdauslesen)
+        self.EZUF8D2E5B23A7A4EDAA256EC4C159D54B2()
         
         self.cbVersion.setCurrentIndex(s.value( "cgversion", 0 ))
         self.EZUB154CA6169DE4C0784D284B246CC18EA()
@@ -95,6 +103,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         
         self.btnDatAuswahl.clicked.connect(self.EZU3A211ED24CAE49969D3BF8E83949FD61)
         self.chkManuel.clicked.connect(self.EZUF8D2E5B23A7A4EDAA256EC4C159D54B2)
+        self.chkPwdAuslesen.clicked.connect(self.EZUF8D2E5B23A7A4EDAA256EC4C159D54B2)
         self.cbVersion.currentIndexChanged.connect(self.EZUB154CA6169DE4C0784D284B246CC18EA)
         self.cbProjektAusAdm.currentIndexChanged.connect(self.EZU6C39AF46E86A4103A0BD15324E9F61EA)
         self.cbServerArt.currentIndexChanged.connect(self.EZU87A85E77E1144493A3CBE98594204B87)
@@ -117,7 +126,11 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             errbox("SQLite-Datei:\n" + dbName + "\nnicht gefunden")
             return False
         
-        rs = EZU32315C76E6A04BD1B46E5CB2DE026E79(dbName,sSQL)
+        if EZUDE54B9C460DD4EE199CA6B2F9CAE4144 (dbName):
+            errbox("SQLite-Datei:\n" + dbName + "\nim WAL-Modus")
+            return False
+            
+        rs = EZU32315C76E6A04BD1B46E5CB2DE026E79(dbName,sSQL, False)
         if rs is None:
             if len(EZU03F45B01171E465F835613DBEE097689()) > 0:
                 errbox("\n\n".join(EZU03F45B01171E465F835613DBEE097689()))
@@ -171,8 +184,12 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                 'FROM DBPROJECT '
                 'INNER JOIN DBCONNECT ON DBPROJECT.DBPROJECT_IDDBCONNECT = DBCONNECT.DBCONNECT_ID '
                 'WHERE DBPROJECT_PRJNAME=\'' + prjName + '\';')
-
-        rs = EZU32315C76E6A04BD1B46E5CB2DE026E79(dbName,sSQL)
+        
+        if EZUDE54B9C460DD4EE199CA6B2F9CAE4144 (dbName):
+            errbox("SQLite-Datei:\n" + dbName + "\nim WAL-Modus")
+            return False
+            
+        rs = EZU32315C76E6A04BD1B46E5CB2DE026E79(dbName,sSQL, False)
         if rs is None:
             if len(EZU03F45B01171E465F835613DBEE097689()) > 0:
                 errbox("\n\n".join(EZU03F45B01171E465F835613DBEE097689()))
@@ -194,13 +211,42 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             
             self.leDBNAME.setText(row["pgDatabase"])
             self.leUID.setText(row["pgUserName"])
-            self.lePWD.setText(row["pgPasswd"])
+            
+
+
+
+            print (len(row["pgPasswd"]),self.cbVersion.currentIndex())
+
+            
+            if len(row["pgPasswd"]) == 96 and self.cbVersion.currentIndex() != 2:
+                self.cbVersion.setCurrentIndex (2)
+                msgbox ('Wechsel auf Version: ' + self.cbVersion.currentText())
+            if len(row["pgPasswd"]) != 96 and self.cbVersion.currentIndex() != 1:
+                self.cbVersion.setCurrentIndex (1)
+                msgbox ('Wechsel auf Version: ' + self.cbVersion.currentText())
+            
+            if len(row["pgPasswd"]) != 96:
+                self.lePWD.setText(row["pgPasswd"])
+                
             self.leEPSG.setText(row["txtEPSG"])
             
     def EZUB154CA6169DE4C0784D284B246CC18EA(self):
 
         s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
         s.setValue( "cgversion", self.cbVersion.currentIndex() )
+        
+
+        self.leEPSG.setEnabled(self.cbVersion.currentIndex() == 0)
+        
+        self.cbProjektAusAdm.setVisible(self.cbVersion.currentIndex() >= 1)    
+        self.lbProjektAusADM.setVisible(self.cbVersion.currentIndex() >= 1)  
+        
+
+        self.chkPwdAuslesen.setEnabled (not (self.cbVersion.currentIndex() == 2))
+        self.chkPwdAuslesen.setChecked (not (self.cbVersion.currentIndex() == 2))
+
+        
+        
         
         self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61(self.cbVersion.currentIndex()))
         if self.cbVersion.currentIndex() == 0:
@@ -209,11 +255,35 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             self.leCGSignaturPfad.setText( QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() ).value( "cgsignaturpfad", "") ) 
             
 
-        if self.cbVersion.currentIndex() == 1: 
+        if self.cbVersion.currentIndex() >= 1: 
             self.lbProjektOrDB.setText(u"Ausgewählte Administrationsdatenbank")  
-            admDat = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() ).value( "admindatei", "" )
-            self.leAktDatName.setText( admDat) 
-            self.leCGSignaturPfad.setText(os.path.dirname(admDat)+'/signaturen/')
+
+
+            lastAdmDat=self.leAktDatName.text().strip()
+            if lastAdmDat == '':
+                return False
+                
+
+            if lastAdmDat == EZU1530D0D3A4E04F2D931FB43613DB642F():
+
+                if (not os.path.isfile (lastAdmDat)):
+                    errbox("Temporäre Kopie der Adminer DB nicht gefunden")
+                    self.leAktDatName.setText('')
+                    return False
+                else:    
+                    lastAdmDat, unused = EZU031BEC08077544EEB1B60AD776DF6A77 (EZU1530D0D3A4E04F2D931FB43613DB642F() + '.meta')
+                    if lastAdmDat == '#LEER#': # zugehörige Metadatei konnte nicht gelesen werden
+                        self.leAktDatName.setText('')
+                        errbox("Temporäre Kopie der Adminer DB unvollständig")
+                        return False
+            else:
+
+                if (not os.path.isfile (lastAdmDat)):
+                    errbox("Adminer DB:\n" + lastAdmDat + "\nnicht gefunden")
+                    self.leAktDatName.setText('')
+                    return False            
+
+            self.leCGSignaturPfad.setText(os.path.dirname(lastAdmDat)+'/signaturen/')
             if self.leAktDatName.text() != "":
                 if not os.path.isfile (self.leAktDatName.text()):
                     errbox("SQLite-Datei:\n" + self.leAktDatName.text() + "\nnicht gefunden")
@@ -222,12 +292,11 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() ).setValue( "admindatei", "" )
                     return False
             
+
             self.EZU6438B2850C414D7C8F6A74E455C1C648(self.leAktDatName.text())
 
-         
-        self.cbProjektAusAdm.setVisible(self.cbVersion.currentIndex() == 1)    
-        self.lbProjektAusADM.setVisible(self.cbVersion.currentIndex() == 1)    
-        self.leEPSG.setEnabled(self.cbVersion.currentIndex() == 0)
+
+        self.EZUF8D2E5B23A7A4EDAA256EC4C159D54B2()
         
     def EZUF8D2E5B23A7A4EDAA256EC4C159D54B2(self):
         bFrei= self.chkManuel.isChecked()
@@ -236,7 +305,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         self.lePORT.setEnabled(bFrei)
         self.leDBNAME.setEnabled(bFrei)
         self.leUID.setEnabled(bFrei)
-        self.lePWD.setEnabled(bFrei)
+        self.lePWD.setEnabled(bFrei or (not self.chkPwdAuslesen.isChecked()))
         self.leCGSignaturPfad.setEnabled(bFrei)
         self.leCGProjektName.setEnabled(bFrei) 
         self.cbServerArt.setEnabled(bFrei)
@@ -353,6 +422,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         return PrjName
         
     def EZU3A211ED24CAE49969D3BF8E83949FD61(self):
+        dummy="https://www.makobo.de/links/Caigos_CheckImport.php?"
         try:
             if self.cbVersion.currentIndex() == 0:
 
@@ -385,20 +455,62 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
                     self.leCGProjektName.setText(EZUF0AF6D30C6EB4BE8A558B27DA05DBD21(PrjName))
                     self.leAktDatName.setText(iniDat)
                     
-            if self.cbVersion.currentIndex() == 1:
+            if self.cbVersion.currentIndex() >= 1:
 
 
+                if self.leAktDatName.text().strip() == "":
+                    lastAdmDat = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() ).value( "admindatei", "" )
+                else:
+                    lastAdmDat = self.leAktDatName.text().strip()
+
+                if lastAdmDat == EZU1530D0D3A4E04F2D931FB43613DB642F():
+                    lastAdmDat, unused = EZU031BEC08077544EEB1B60AD776DF6A77 (EZU1530D0D3A4E04F2D931FB43613DB642F() + '.meta')
                 if myqtVersion == 4:
                     admDat = QFileDialog.getOpenFileName(None, 'Administrationsdatenbank  im CAIGOS-Server Ordner', 
-                             self.leAktDatName.text().strip() , "database (*.cgbin)")
+                             lastAdmDat , "database (*.cgbin)")
                 else:
-                    admDat = QFileDialog.getOpenFileName(None, 'Administrationsdatenbank  im CAIGOS-Server Ordner', 
-                             self.leAktDatName.text().strip() , "database (*.cgbin)")[0]
-                
+                    admDat = QFileDialog.getOpenFileName(self, 'Administrationsdatenbank  im CAIGOS-Server Ordner', 
+                             lastAdmDat , "database (*.cgbin);; Sicherung (*.bak);;Alle Dateien (*.*)")[0]
+
                 if admDat:
+
+                    self.leCGSignaturPfad.setText(os.path.dirname(admDat)+'/signaturen/')
+                    servEXE=os.path.dirname(admDat) + r'\PACTOR_Service.exe'
+                    vEXE='#'
+                    if os.path.isfile(servEXE):
+                        vEXE, dEXE = EZU7E0D638197C34356A2E45006516F0C4F(servEXE)
+                        try:
+                            s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
+                            if (s.value( "status","") != "false"):
+                                check= dummy  + EZU11DE7CED39F2439E803B738E6E678716() + "|" + str(EZUC86841CA58BC4846B265D42D4397141D()) + ":" + EZUF9FB4AE0A2B44C8B8313441BFB307407() + ":EXE=" + dEXE + '_' + vEXE
+                                EZUC8D59B20568948389B1274373D8E0990(check,EZUE2CC6C01835941909C82368EAB1CE1E2()+'test.zip')
+                        except:
+                            pass
+
+                    
+                    if EZUDE54B9C460DD4EE199CA6B2F9CAE4144 (admDat):
+                        cls=uiAdminerCopy(admDat)
+                        cls.exec_()
+                        Antw=cls.EZU5FD59B408C704253BE664AD8D5A06359()
+
+                        if Antw == '#ABBRUCH#' or Antw == '#Kopieren#':
+                            return False
+                        else:
+                            admDat = Antw
+                            
                     if self.EZU6438B2850C414D7C8F6A74E455C1C648 (admDat):
                         self.leAktDatName.setText(admDat)
-                        self.leCGSignaturPfad.setText(os.path.dirname(admDat)+'/signaturen/') 
+                    if vEXE == '19.3' and self.cbVersion.currentIndex() != 2:
+                        self.cbVersion.setCurrentIndex (2)
+                        msgbox ('Wechsel auf Version: ' + self.cbVersion.currentText())
+                    if vEXE == '19.2' and self.cbVersion.currentIndex() != 1:
+                        self.cbVersion.setCurrentIndex (1)
+                        msgbox ('Wechsel auf Version: ' + self.cbVersion.currentText())
+  
+
+
+
+
 
         
         except Exception as e:
@@ -436,7 +548,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         s.setValue( "cgserverart", self.cbServerArt.currentIndex() )
         if self.cbVersion.currentIndex() == 0:
             s.setValue( "dbinidatei", self.leAktDatName.text().strip() )
-        if self.cbVersion.currentIndex() == 1:
+        if self.cbVersion.currentIndex() >= 1:
             s.setValue( "admindatei", self.leAktDatName.text().strip() )
   
         s.setValue( "service", self.leSERVICE.text().strip() )
@@ -445,6 +557,7 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
         s.setValue( "dbname", self.leDBNAME.text().strip() )
         s.setValue( "uid", self.leUID.text().strip() )
         s.setValue( "pwd", self.lePWD.text().strip() )
+        s.setValue( "pwdauslesen", "Ja" if self.chkPwdAuslesen.isChecked() == True else "Nein")      
         s.setValue( "epsg", self.leEPSG.text().strip() )
         s.setValue( "cgsignaturpfad", self.leCGSignaturPfad.text().strip() )
         s.setValue( "cgprojektname", EZUF0AF6D30C6EB4BE8A558B27DA05DBD21(self.leCGProjektName.text().strip()) )        
@@ -462,7 +575,8 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
             msgbox ("Abfragen wurden generiert")
         else:
             if len(EZU03F45B01171E465F835613DBEE097689()) > 0:
-                errbox("* " + "\n* ".join(EZU03F45B01171E465F835613DBEE097689())) 
+                Quelle='uiDBAnbindung(' + str(sys._getframe(0).f_lineno) + ') '
+                errbox("* " + "\n* ".join(EZU03F45B01171E465F835613DBEE097689()),Quelle) 
                 EZU0BAA4CE0798E48099454390EF2BC83A4()
                 
     def EZU181874100A5A4980BD95DAA0A4F1AFA8(self):
@@ -510,11 +624,29 @@ class uiDBAnbindung(QDialog, FORM_CLASS):
 
 
  
-if __name__ == "__main__":
-    uri = QgsDataSourceUri()
-    app = QApplication(sys.argv)
 
 
-    cls=uiDBAnbindung()
-    result=cls.exec_()
- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

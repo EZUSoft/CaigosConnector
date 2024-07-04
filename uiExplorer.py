@@ -181,7 +181,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         
 
         
-        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"
+        chkurl="https://www.makobo.de/links/Caigos_CheckVersion.php?"
         
         EZU1C9648848F904099A178AD545D77A882()
         self.setWindowTitle (EZUAC62A428AD734562A807B0FF8D792A61())  
@@ -200,7 +200,7 @@ class uiExplorer(QDialog, FORM_CLASS):
         bSaveDar = True if s.value( "bSaveDar", "Ja" )  == "Ja"   else False
         bOnlyDarField = True if s.value( "bOnlyDarField", "Ja" )  == "Ja"   else False
         bNoGISDBIntern = True if s.value( "bNoGISDBIntern", "Ja" )  == "Ja"   else False
-        chkurl="http://www.makobo.de/links/Caigos_CheckVersion.php?"   
+        chkurl="https://www.makobo.de/links/Caigos_CheckVersion.php?"   
         iCodePage=s.value( "iCodePage", 0)
         iObjKlasse=s.value( "iObjKlasse", 0)
 
@@ -506,31 +506,3 @@ class uiExplorer(QDialog, FORM_CLASS):
 
 
         
-if __name__ == "__main__":
-
-
-
-
-
-    s = QSettings( "EZUSoft", EZU366C2CC3BAD145709B8EEEB611D1D6AA() )
-
-
-
-
-
-    
-
-    
-    
-    
-    
-    app = QApplication(sys.argv)
-    from clsCaigosConnector import *
-    cls=clsCaigosConnector(iface)
-    cls.EZU4B07243EE7524760AD9AFF93D330E846()
-
-
-
-
-
- 

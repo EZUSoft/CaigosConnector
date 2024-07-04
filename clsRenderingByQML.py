@@ -52,6 +52,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 import xml.etree.cElementTree as ET
 import xml.dom.minidom as dom
 import tempfile
@@ -870,8 +871,8 @@ def EZU9FE03FB711BE4A2C8B8130D9B8786C9F (eSettings,rsParam,art='e'):
 
     return eSettings    
 
-class clsRenderingByQML():      
-    def EZUD5A9A7B19C594CD5AA23BB973E8B906D(self, AktDB, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group, bDarObjKl): 
+
+def EZUBAF63C731D2043EEB63E493676BA1E93(AktDB, cgUser, qLayer, cgEbenenTyp, LayerID, bRolle, Group, bDarObjKl): 
 
         symNum=0
         
@@ -899,6 +900,8 @@ class clsRenderingByQML():
             else:
                 fobjKlasse=None
             rsAttDefs=db.EZUDCF0989FCCB948B08C56317AE7037619(EZU64C9598DF0AB4FADA28872A43F622D0A( cgEbenenTyp, LayerID, bDarObjKl))
+            if not rsAttDefs:
+                return 'rsAttDefs=None'
 
             if cgEbenenTyp == 3:
                 eRules = ET.SubElement(eLabeling,"rules")
@@ -935,7 +938,7 @@ class clsRenderingByQML():
 
 
 
-                    rsLayerName = db.EZUDCF0989FCCB948B08C56317AE7037619(EZU78184C71D89340528FDC57FFA2DEE943(LayerID))
+                    rsLayerName = db.EZUDCF0989FCCB948B08C56317AE7037619(EZUC919609B70974C769FCCE8339E252DC9(LayerID))
                     rsLayerName.next()
                     EZU9AC841489FAD40E4B1A1232B3CA9B315('Layer: ' + EZU1FCD98CB63A64E32A30A1F171BE370F3(rsLayerName.value(0)) + " /CaigosAD: " + EZU1FCD98CB63A64E32A30A1F171BE370F3(rsAttDefs.value(1)) + 
                        " /QGisAD: "+EZU1FCD98CB63A64E32A30A1F171BE370F3(AktDefName)+" /Typ: " + str(cgEbenenTyp) + " - Kein Attribut gefunden; Erstes Objekt: " + EZU1FCD98CB63A64E32A30A1F171BE370F3(rsAttDefs.value(3)))
@@ -1097,11 +1100,4 @@ class clsRenderingByQML():
                 os.remove(tempName)
             except:
                 EZUC8DCB02F1A8145AF82C8A69A43E0529B(tr('can not remove: ') + tempName)
-    
-if __name__ == "__main__":
-    LayerID=None
-    cgEbenenTyp=None
-    AktDefName=None
-
-
-
+        return 'ok'

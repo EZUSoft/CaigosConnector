@@ -14,8 +14,21 @@ description=CAIGOS SQL Projekte anzeigen
 
 author=EZUSoft
 email=qgis@makobo.de
-version=1.1.7
-changelog=03.07.2022 V1.1.7: 
+version=1.2.2
+changelog=29.03.2023 V1.2.2: 
+        - um fehlendes Feld bei Export erweitert
+	
+	28.03.2023 V1.2.1: 
+        - Fehler bei Auswahl der ADM-Datei beseitigt
+	
+	16.03.2023 V1.2.0: 
+        - Exportprobleme der neuen QGIS-Versionen (ab 3.28) umgehen
+    
+    18.01.2023 V1.1.9: 
+        - Anpassungen an Caigos 19.3
+        - Fehler aus 1.1.6 bei Objektklassen beseitigt 
+
+	03.07.2022 V1.1.7: 
         - interne Anpassungen
 
 	10.05.2022 V1.1.6: 
@@ -57,7 +70,7 @@ about=Remark:
 
 tracker=https://github.com/EZUSoft/CaigosConnector/issues
 repository=https://github.com/EZUSoft/CaigosConnector
-homepage=http://www.makobo.de/links/Forum_CaigosConnector.php
+homepage=https://www.makobo.de/links/Forum_CaigosConnector.php
 # End of mandatory metadata
 
 # Recommended items:
@@ -73,4 +86,5 @@ experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
+
 

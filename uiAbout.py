@@ -58,16 +58,9 @@ class uiAbout(QDialog, FORM_CLASS):
         self.setupUi(self)
 
         s=self.lblLink.text()
-        s=s.replace("$$Homepage$$","http://www.makobo.de/links/Home_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
-        s=s.replace("$$Daten$$","http://www.makobo.de/links/Daten_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
-        s=s.replace("$$Forum$$","http://www.makobo.de/links/Forum_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
-        s=s.replace("$$Doku$$","http://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Homepage$$","https://www.makobo.de/links/Home_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Daten$$","https://www.makobo.de/links/Daten_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Forum$$","https://www.makobo.de/links/Forum_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
+        s=s.replace("$$Doku$$","https://www.makobo.de/links/Dokumentation_CaigosConnector.php?id=" + EZU11DE7CED39F2439E803B738E6E678716())
         self.lblLink.setText(s)
   
-if __name__ == "__main__":
-
-    printlog  (os.path.dirname(__file__))
-
-    app = QApplication(sys.argv)    
-    cls=uiAbout()
-    cls.exec_()

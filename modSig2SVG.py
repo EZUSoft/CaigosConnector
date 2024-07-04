@@ -231,15 +231,3 @@ def EZUA4E9AB9A09C14707873F50EB1D7815E2 (qDat, zDatOrBase64, Fill=False):
         EZU2CC2ED60E16A4317BA8BEBE4D6120301 (qDat)
 
     
-if __name__ == "__main__":
-    test='j'
-    bZentr=(test=='J')
-    print (bZentr)
-
-
-
-
-
-
- 
-

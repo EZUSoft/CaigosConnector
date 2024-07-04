@@ -62,6 +62,7 @@ CaigosConnector: Connect CAIGOS-GIS with QGIS
 
 
 
+
 from osgeo import ogr 
 from qgis.core import *
 from qgis.utils import os, sys
@@ -93,7 +94,7 @@ except:
     
 import os.path
 import tempfile
-import sqlite3
+
 import locale
 import uuid
 from copy import deepcopy
@@ -163,11 +164,12 @@ class pgOpenDatabase():
         if self.QSqlDB.open():
             return self.QSqlDB
         else:
-            err = (u"Datenbank: " + self.dbname + '\n' +
+            err = (u"pgOpenDatabase.Open(): " + self.dbname + '\n' +
             "Text: " + self.QSqlDB.lastError().text() +  '\n' +
             "Type: " + str(self.QSqlDB.lastError().type()) +  '\n' +
             "Number: " + str(self.QSqlDB.lastError().number()) )
             self.Fehler =  (EZUC936D29251B44D4E994497BF023338C7(err))
+            EZUC8DCB02F1A8145AF82C8A69A43E0529B(EZUC936D29251B44D4E994497BF023338C7(err))
 
 
 
@@ -185,12 +187,13 @@ class pgOpenDatabase():
         if rs.exec_( SQLString ):
             return rs
         else:
-            err = (u"exec_( SQLString ):"  + "\n" +
+            err = (u"pgOpenDatabase.EZUDCF0989FCCB948B08C56317AE7037619(): exec_( SQLString ):"  + "\n" +
             "Text: " + rs.lastError().text() +  "\n" +
             "Type: " + str(rs.lastError().type()) +  "\n" +
             "Number: " + str(rs.lastError().number()) +  "\n" +
             "SQL: " + SQLString)
-            self.Fehler =  (EZUC936D29251B44D4E994497BF023338C7(err))            
+            self.Fehler =  (EZUC936D29251B44D4E994497BF023338C7(err))   
+            EZUC8DCB02F1A8145AF82C8A69A43E0529B(EZUC936D29251B44D4E994497BF023338C7(err))            
     
     def EZU8011F18E65644E5D9231765F31D7EE19(self, idxVersion = None, EPSG=None, CGSignaturPfad=None,CGProjektName=None,conninfo=None, NurFehler=False):
         Meldung =""; Fehler=""; Warnung = ""
@@ -471,6 +474,7 @@ def EZU624FEDF4E3654DEBA88006DC55E937C2 (TabName, GeoTabName, AktDB = None):
 
 
 
+
     if AktDB:
         db=AktDB
     else:
@@ -493,7 +497,10 @@ def EZU624FEDF4E3654DEBA88006DC55E937C2 (TabName, GeoTabName, AktDB = None):
             s = s + rs.value(0) + " as objidgistab," 
         else:
 
-            NeuNam=rs.value(0).replace(TabName + '_','')           
+            NeuNam=rs.value(0).replace(TabName + '_','') 
+            if NeuNam[0].isdigit():
+
+                NeuNam = "_" + NeuNam
             while NeuNam in geoFList:
                 NeuNam="_" + NeuNam               
             s = s + rs.value(0) + " as " + NeuNam + ","
@@ -582,10 +589,9 @@ def EZU494640CF7D9A43E19FD083B6B034293A ( Art, ConnInfo, Epsg, LayerID, b3DDar ,
     sqlKey=""
     if (Art != 31):  
         if (GISDbTab):
-            sql4GISDB, LastGeoTabSpalte = EZU624FEDF4E3654DEBA88006DC55E937C2(GISDbTab,geoTabName)
             if bShape:
 
-
+                sql4GISDB, LastGeoTabSpalte = EZU624FEDF4E3654DEBA88006DC55E937C2(GISDbTab,geoTabName)
                 sql4GISDB.replace("\\","")
                 sqlGISDB = (' left join (%s) as gtab on %s.objid = gtab.objidgistab') % (sql4GISDB,geoTabName)
             else:
@@ -814,10 +820,14 @@ def EZUD50D8C51F08C4A5EA7A344E41666D439(db,LayerID, cgUser):
 def EZU15346725D7EC4BE49A8C7B6A48FC2454 (schema, bOnlyDarField, bNoGISDBIntern, LastGeoTabSpalte, GISDBTabName):
 
 
+    
+
     idxFields=[]
     for i in range(len(schema)):
         idxFields.append(i)
-                
+        if schema[i] == 'shape':
+            idxFields[i] = -1 
+       
     if bNoGISDBIntern and GISDBTabName != None: 
         GISDBTabName=GISDBTabName.upper()
         for sp in schema:
@@ -919,32 +929,10 @@ def EZUCA7646F5CB604929B5B1138CDCC58756 (shpdat, bOnlyDarField, bNoGISDBIntern, 
     source.Destroy()   
     return delAnz
     
-if __name__ == "__main__":
-    keyList=[]
-    keyList.append ('01')
-    keyList.append ('02')
-    keyList.append ('03')
-    keyList.append ('04')
-    
 
-    sSQL="SELECT o.objid as key_objid"
-    for key in keyList:
-        sSQL = sSQL + (", k%s.value as Key%s") % (key,key)
-    sSQL = sSQL + "\n FROM \n"
 
-    for key in keyList:
-        sSQL = sSQL + "("
-    sSQL = sSQL + "\n(select distinct objid from odbtable) as o"
-    
-    for key in keyList:
-        sSQL = sSQL + ("\n   LEFT JOIN (select objid,value from odbtable where ident='%s') AS k%s ON o.objid = k%s.objid)") % (key,key, key)
-    sSQL = sSQL + "\n) as keys on polyssqlspatial.objid = keys.key_objid"
 
 
-    
-    
-    
-    print (sSQL)
 
 
 
@@ -984,35 +972,6 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-    
 
 
 
